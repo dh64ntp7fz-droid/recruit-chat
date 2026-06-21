@@ -107,10 +107,11 @@ input:focus,select:focus{border-color:#d4232c}
         <option value="男">仅限男性</option>
         <option value="女">仅限女性</option>
       </select>
-      <select id="newStore" style="flex:1">
-        <option value="全部门店">全部门店</option>
-      </select>
       <input id="newExp" placeholder="经验要求" style="flex:2">
+    </div>
+    <div style="margin-bottom:8px">
+      <span style="font-size:12px;color:#999">门店（可多选）:</span>
+      <span id="newStoreCbs" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;align-items:center"></span>
     </div>
     <div class="form-row">
       <div style="display:flex;gap:4px;flex:3">
@@ -120,6 +121,22 @@ input:focus,select:focus{border-color:#d4232c}
       <button class="btn btn-sm" onclick="addJob()" style="white-space:nowrap">添加</button>
     </div>
     <div id="addResult" style="font-size:12px;color:#999;margin-top:4px;min-height:18px"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="font-weight:600;margin-bottom:10px;font-size:15px">🏪 门店管理</div>
+  <div id="storeList" style="margin-bottom:10px"><div class="empty">加载中...</div></div>
+  <div style="border-top:1px solid #eee;padding-top:10px">
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px;color:#d4232c">➕ 新增门店</div>
+    <div class="form-row">
+      <input id="newStoreName" placeholder="门店名称" style="flex:1">
+      <input id="newStoreAddr" placeholder="门店地址" style="flex:2">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-sm" onclick="addStore()">添加门店</button>
+      <span id="storeResult" style="font-size:12px;color:#999;line-height:30px"></span>
+    </div>
   </div>
 </div>
 
@@ -251,6 +268,9 @@ function render(d) {
 
   // Jobs
   loadJobs();
+  
+  // Stores
+  loadStores();
 }
 
 function toggleConv(idx) {
@@ -265,34 +285,50 @@ async function loadJobs() {
     window._stores = d.stores || d.kb?.stores || [];
     const jobs = (d.kb && d.kb.jobs) || [];
     
-    // Populate store dropdown in new form
-    const storeSel = document.getElementById('newStore');
-    storeSel.innerHTML = '<option value="全部门店">全部门店</option>' +
-      window._stores.map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+    // Populate store checkboxes in new form
+    const newCbs = document.getElementById('newStoreCbs');
+    newCbs.innerHTML = window._stores.map(s =>
+      `<label style="font-size:12px;display:flex;align-items:center;gap:2px;cursor:pointer;background:#f5f5f5;padding:2px 6px;border-radius:4px;border:1px solid #eee;white-space:nowrap"><input type="checkbox" class="new-store-cb" value="${esc(s.name)}">${esc(s.name)}</label>`
+    ).join('') +
+    `<label style="font-size:12px;display:flex;align-items:center;gap:2px;cursor:pointer;background:#f5f5f5;padding:2px 6px;border-radius:4px;border:1px solid #eee;white-space:nowrap"><input type="checkbox" class="new-store-cb" value="全部门店">全部</label>`;
+    // "全部" behavior for new form
+    newCbs.querySelectorAll('.new-store-cb').forEach(cb => {
+      cb.addEventListener('change', function() {
+        const cbs = newCbs.querySelectorAll('.new-store-cb');
+        if (this.value === '全部门店') {
+          if (this.checked) cbs.forEach(c => { if (c.value !== '全部门店') c.checked = false; });
+        } else {
+          const others = Array.from(cbs).filter(c => c.value !== '全部门店');
+          cbs.forEach(c => { if (c.value === '全部门店') c.checked = others.every(c2 => !c2.checked); });
+        }
+      });
+    });
 
     const el = document.getElementById('jobList');
     if (jobs.length === 0) {
       el.innerHTML = '<div class="empty">暂无岗位</div>';
     } else {
-      el.innerHTML = jobs.map((j,i) =>
-        `<div class="job-card">
+      el.innerHTML = jobs.map((j,i) => {
+        const stores = Array.isArray(j.store) ? j.store : [j.store || '全部门店'];
+        return `<div class="job-card">
           <div class="info">
             <div><input id="et_${i}" value="${esc(j.title)}" class="job-input" placeholder="名称" style="font-weight:600;color:#d4232c"></div>
-            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center">
               <input id="ea_${i}" value="${esc(j.age)}" class="job-input" placeholder="年龄" style="width:80px">
               <select id="eg_${i}" class="job-input" style="width:95px">
                 <option value="不限" ${j.gender==='不限'?'selected':''}>不限</option>
                 <option value="仅限男性" ${j.gender==='仅限男性'?'selected':''}>仅限男性</option>
                 <option value="仅限女性" ${j.gender==='仅限女性'?'selected':''}>仅限女性</option>
               </select>
-              <select id="es_${i}" class="job-input" style="flex:1;min-width:100px">
-                ${window._stores.map(s => `<option value="${esc(s.name)}" ${j.store===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}
-                <option value="全部门店" ${(!j.store||j.store==='全部门店')?'selected':''}>全部门店</option>
-              </select>
+              <span style="font-size:12px;color:#999;margin-right:2px">门店:</span>
+              <span id="sc_${i}" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+                ${window._stores.map(s => `<label style="font-size:12px;display:flex;align-items:center;gap:2px;cursor:pointer;background:#f5f5f5;padding:2px 6px;border-radius:4px;border:1px solid #eee;white-space:nowrap"><input type="checkbox" class="store-cb" data-idx="${i}" value="${esc(s.name)}" ${stores.includes(s.name)?'checked':''}>${esc(s.name)}</label>`).join('')}
+                <label style="font-size:12px;display:flex;align-items:center;gap:2px;cursor:pointer;background:#f5f5f5;padding:2px 6px;border-radius:4px;border:1px solid #eee;white-space:nowrap"><input type="checkbox" class="store-cb" data-idx="${i}" value="全部门店" ${stores.includes('全部门店')?'checked':''}>全部</label>
+              </span>
               <input id="ee_${i}" value="${esc(j.exp)}" class="job-input" placeholder="经验" style="flex:1;min-width:120px">
               <div style="display:flex;gap:4px;flex:2;min-width:130px">
                 <input id="ed_${i}" value="${esc(j.duty)}" class="job-input" placeholder="工作内容" style="flex:1">
-                <button class="btn btn-sm" onclick="aiComplete(${i})" style="padding:2px 6px;font-size:11px;white-space:nowrap" title="AI生成工作内容">🤖</button>
+                <button class="btn btn-sm" onclick="aiComplete(${i})" style="padding:2px 6px;font-size:11px;white-space:nowrap">🤖</button>
               </div>
             </div>
           </div>
@@ -300,8 +336,23 @@ async function loadJobs() {
             <button class="btn btn-sm" onclick="editJob(${i})" style="padding:4px 8px">保存</button>
             <button class="btn btn-sm btn-outline" onclick="delJob(${i})" style="padding:4px 8px">删除</button>
           </div>
-        </div>`
-      ).join('');
+        </div>`;
+      }).join('');
+      // Bind checkbox behavior: "全部" unchecks others, unchecking all checks "全部"
+      document.querySelectorAll('.store-cb').forEach(cb => {
+        cb.addEventListener('change', function() {
+          const idx = this.dataset.idx;
+          const cbs = document.querySelectorAll(`.store-cb[data-idx="${idx}"]`);
+          if (this.value === '全部门店') {
+            if (this.checked) cbs.forEach(c => { if (c.value !== '全部门店') c.checked = false; });
+          } else {
+            const otherStores = Array.from(cbs).filter(c => c.value !== '全部门店');
+            const allChecked = otherStores.every(c => c.checked);
+            const allUnchecked = otherStores.every(c => !c.checked);
+            cbs.forEach(c => { if (c.value === '全部门店') c.checked = allUnchecked; });
+          }
+        });
+      });
     }
   } catch(e) {
     document.getElementById('jobList').innerHTML = '<div class="empty">加载失败</div>';
@@ -312,7 +363,10 @@ async function addJob() {
   const title = document.getElementById('newTitle').value.trim();
   const age = document.getElementById('newAge').value.trim();
   const gender = document.getElementById('newGender').value;
-  const store = document.getElementById('newStore').value;
+  // Read selected stores from checkboxes
+  const storeCbs = document.querySelectorAll('#newStoreCbs .new-store-cb:checked');
+  const store = Array.from(storeCbs).map(cb => cb.value);
+  if (store.length === 0) store.push('全部门店');
   const exp = document.getElementById('newExp').value.trim();
   const duty = document.getElementById('newDuty').value.trim();
   const resultEl = document.getElementById('addResult');
@@ -437,6 +491,66 @@ function esc(s) {
 function toggleReg() {
   window._regShowAll = !window._regShowAll;
   loadData();
+}
+
+// ===== 门店管理 =====
+async function loadStores() {
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    window._stores = d.stores || [];
+    const el = document.getElementById('storeList');
+    if (!window._stores.length) {
+      el.innerHTML = '<div class="empty">暂无门店</div>';
+    } else {
+      el.innerHTML = window._stores.map((s,i) =>
+        `<div class="reg-item" style="display:flex;justify-content:space-between;align-items:center">
+          <div><span class="name">${esc(s.name)}</span><div class="meta">${esc(s.addr)}</div></div>
+          <button class="btn btn-sm btn-outline" onclick="delStore(${i})" style="flex-shrink:0">删除</button>
+        </div>`
+      ).join('');
+    }
+  } catch(e) { document.getElementById('storeList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function addStore() {
+  const name = document.getElementById('newStoreName').value.trim();
+  const addr = document.getElementById('newStoreAddr').value.trim();
+  const resultEl = document.getElementById('storeResult');
+  if (!name || !addr) { resultEl.innerHTML = '❌ 请填写门店名称和地址'; return; }
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    d.stores = d.stores || [];
+    if (d.stores.some(s => s.name === name)) { resultEl.innerHTML = '❌ 门店已存在'; return; }
+    d.stores.push({name, addr});
+    d.kb = d.kb || {};
+    d.kb.stores = d.stores;
+    d.kb.updatedAt = new Date().toISOString();
+    await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    resultEl.innerHTML = '✅ 已添加「' + name + '」';
+    document.getElementById('newStoreName').value = '';
+    document.getElementById('newStoreAddr').value = '';
+    loadStores();
+    loadJobs(); // Refresh job store checkboxes
+  } catch(e) { resultEl.innerHTML = '❌ 失败: ' + e.message; }
+}
+
+async function delStore(idx) {
+  if (!confirm('确认删除该门店？关联的岗位不受影响。')) return;
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    if (!d.stores || idx < 0 || idx >= d.stores.length) return;
+    const removed = d.stores.splice(idx, 1)[0];
+    d.kb = d.kb || {};
+    d.kb.stores = d.stores;
+    d.kb.updatedAt = new Date().toISOString();
+    await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    document.getElementById('storeResult').innerHTML = '✅ 已删除「' + removed.name + '」';
+    loadStores();
+    loadJobs();
+  } catch(e) { document.getElementById('storeResult').innerHTML = '❌ 失败: ' + e.message; }
 }
 
 loadData();
