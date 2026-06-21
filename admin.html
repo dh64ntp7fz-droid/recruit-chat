@@ -155,6 +155,7 @@ const errEl = document.getElementById('errEl');
 function getURL() { return CORS_PROXY + encodeURIComponent(BIN_URL); }
 
 async function loadData() {
+  if (window._editing) return; // 编辑中不刷新
   try {
     const r = await fetch(getURL(), {cache:'no-store'});
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -362,6 +363,7 @@ async function loadJobs() {
 }
 
 async function addJob() {
+  window._editing = true;
   const title = document.getElementById('newTitle').value.trim();
   const age = document.getElementById('newAge').value.trim();
   const gender = document.getElementById('newGender').value;
@@ -388,6 +390,7 @@ async function addJob() {
     d.kb.updatedAt = new Date().toISOString();
     await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
     resultEl.innerHTML = '✅ 已添加「' + title + '」';
+    window._editing = false;
     document.getElementById('newTitle').value = '';
     document.getElementById('newAge').value = '18-25岁';
     document.getElementById('newExp').value = '';
@@ -395,11 +398,13 @@ async function addJob() {
     loadJobs();
   } catch(e) {
     resultEl.innerHTML = '❌ 失败: ' + e.message;
+    window._editing = false;
   }
 }
 
 async function delJob(idx) {
-  if (!confirm('确认删除该岗位？')) return;
+  window._editing = true;
+  if (!confirm('确认删除该岗位？')) { window._editing = false; return; }
   try {
     const r = await fetch(getURL(), {cache:'no-store'});
     const d = await r.json();
@@ -413,10 +418,13 @@ async function delJob(idx) {
     loadJobs();
   } catch(e) {
     document.getElementById('addResult').innerHTML = '❌ 失败: ' + e.message;
+    window._editing = false;
   }
 }
 
 async function editJob(idx) {
+  // 暂停自动刷新，防止编辑中被覆盖
+  window._editing = true;
   const title = document.getElementById('et_' + idx).value.trim();
   const age = document.getElementById('ea_' + idx).value.trim();
   const gender = document.getElementById('eg_' + idx).value;
@@ -438,6 +446,7 @@ async function editJob(idx) {
     d.kb.updatedAt = new Date().toISOString();
     await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
     document.getElementById('addResult').innerHTML = '✅ 已保存「' + title + '」';
+    window._editing = false;
     loadJobs();
   } catch(e) {
     document.getElementById('addResult').innerHTML = '❌ 失败: ' + e.message;
