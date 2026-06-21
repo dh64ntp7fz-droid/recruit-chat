@@ -421,7 +421,10 @@ async function editJob(idx) {
   const age = document.getElementById('ea_' + idx).value.trim();
   const gender = document.getElementById('eg_' + idx).value;
   const quota = parseInt(document.getElementById('eq_' + idx).value) || 1;
-  const store = document.getElementById('es_' + idx).value;
+  // Read store checkboxes
+  const storeCbs = document.querySelectorAll(`#sc_${idx} .store-cb:checked`);
+  const store = Array.from(storeCbs).map(cb => cb.value);
+  if (store.length === 0) store.push('全部门店');
   const exp = document.getElementById('ee_' + idx).value.trim();
   const duty = document.getElementById('ed_' + idx).value.trim();
   if (!title || !age) { document.getElementById('addResult').innerHTML = '❌ 名称和年龄不能为空'; return; }
