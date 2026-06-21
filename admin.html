@@ -79,6 +79,19 @@ h1{font-size:20px;color:#d4232c;margin-bottom:4px}
   <div id="visitList"><div class="empty">暂无数据</div></div>
 </div>
 
+<div class="card">
+  <div style="font-weight:600;margin-bottom:10px;font-size:15px">🔧 管理命令</div>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <input id="adminCmd" type="text" placeholder="输入管理命令..." style="flex:1;height:36px;border-radius:6px;border:1px solid #e0e0e0;padding:0 12px;font-size:13px;outline:none">
+    <button class="btn" onclick="execAdminCmd()" style="padding:8px 16px">发送</button>
+  </div>
+  <div id="adminHelp" style="font-size:11px;color:#999;margin-bottom:8px">
+    💡 例如：<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">改薪资 5000元</code>
+    <span style="cursor:pointer;color:#d4232c;margin-left:8px" onclick="showAdminHelp()">查看全部指令 ▸</span>
+  </div>
+  <div id="cmdResult" style="font-size:13px;padding:8px 0;display:none"></div>
+</div>
+
 <script>
 const BIN_URL = 'https://jsonblob.com/api/jsonBlob/019eea69-fad1-7cb6-a0af-a6dfb089a54b';
 const CORS_PROXY = 'https://corsproxy.io/?';
@@ -198,6 +211,159 @@ function toggleReg() {
   window._regShowAll = !window._regShowAll;
   loadData();
 }
+
+// ===== 管理命令 =====
+const ADMIN_KEY = '0731';
+
+function showAdminHelp() {
+  const help = `📋 <b>管理指令列表</b><br><br>` +
+    `➕ <b>加岗位 名称 年龄 性别 经验 工作内容</b><br>` +
+    `❌ <b>删岗位 名称</b><br>` +
+    `👤 <b>改性别 岗位名 男/女/不限</b><br>` +
+    `🎂 <b>改年龄 岗位名 年龄范围</b><br>` +
+    `💰 <b>改薪资 金额</b><br>` +
+    `📌 <b>看岗位</b> — 查看当前所有岗位<br>` +
+    `🔒 <b>退出管理</b> — 返回招聘对话`;
+  showResult(help);
+}
+
+function showResult(html) {
+  const el = document.getElementById('cmdResult');
+  el.innerHTML = html;
+  el.style.display = '';
+}
+
+async function execAdminCmd() {
+  const input = document.getElementById('adminCmd');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+  input.value = '';
+
+  // 帮助
+  if (/^(帮助|help|？|\?)$/i.test(cmd)) {
+    showAdminHelp();
+    return;
+  }
+
+  // 看岗位
+  if (/^看岗位/.test(cmd)) {
+    try {
+      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
+      const d = await r.json();
+      const jobs = (d.kb && d.kb.jobs) || [];
+      if (jobs.length === 0) showResult('暂无岗位数据');
+      else showResult(jobs.map((j,i) => `${i+1}. <b>${j.title}</b> | ${j.age} | ${j.gender} | ${j.exp}`).join('<br>'));
+    } catch(e) { showResult('❌ 读取失败: ' + e.message); }
+    return;
+  }
+
+  // 删岗位
+  let m = cmd.match(/^删岗位\s+(.+)/);
+  if (m) {
+    try {
+      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
+      const d = await r.json();
+      const jobs = d.kb && d.kb.jobs ? d.kb.jobs : [];
+      const idx = jobs.findIndex(j => j.title === m[1].trim());
+      if (idx === -1) showResult('❌ 未找到岗位「' + m[1] + '」');
+      else {
+        const removed = jobs.splice(idx, 1)[0];
+        d.kb.jobs = jobs;
+        d.kb.updatedAt = new Date().toISOString();
+        await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+        showResult('✅ 已删除「' + removed.title + '」');
+        loadData();
+      }
+    } catch(e) { showResult('❌ 失败: ' + e.message); }
+    return;
+  }
+
+  // 加岗位
+  m = cmd.match(/^加岗位\s+(\S+)\s+(\S+)\s+(男|女|不限)\s+(.+)/);
+  if (m) {
+    try {
+      const [_, title, age, gender, rest] = m;
+      const dutyIdx = rest.lastIndexOf(' ');
+      let exp = rest, duty = '';
+      if (dutyIdx > 0) { exp = rest.substring(0, dutyIdx); duty = rest.substring(dutyIdx + 1); }
+      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
+      const d = await r.json();
+      d.kb = d.kb || {};
+      d.kb.jobs = d.kb.jobs || [];
+      d.kb.jobs.push({title, age, gender, exp, duty});
+      d.kb.updatedAt = new Date().toISOString();
+      await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+      showResult('✅ 已添加「' + title + '」');
+      loadData();
+    } catch(e) { showResult('❌ 失败: ' + e.message); }
+    return;
+  }
+
+  // 改性别
+  m = cmd.match(/^改性别\s+(\S+)\s+(男|女|不限)/);
+  if (m) {
+    try {
+      const [_, name, gender] = m;
+      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+      const d = await r.json();
+      const j = (d.kb && d.kb.jobs || []).find(j => j.title === name);
+      if (!j) showResult('❌ 未找到「' + name + '」');
+      else {
+        j.gender = gender === '女' ? '仅限女性' : gender === '男' ? '仅限男性' : '不限';
+        d.kb.updatedAt = new Date().toISOString();
+        await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+        showResult('✅ 已修改');
+        loadData();
+      }
+    } catch(e) { showResult('❌ 失败: ' + e.message); }
+    return;
+  }
+
+  // 改年龄
+  m = cmd.match(/^改年龄\s+(\S+)\s+(.+)/);
+  if (m) {
+    try {
+      const [_, name, age] = m;
+      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+      const d = await r.json();
+      const j = (d.kb && d.kb.jobs || []).find(j => j.title === name);
+      if (!j) showResult('❌ 未找到「' + name + '」');
+      else {
+        j.age = age;
+        d.kb.updatedAt = new Date().toISOString();
+        await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+        showResult('✅ 已修改');
+        loadData();
+      }
+    } catch(e) { showResult('❌ 失败: ' + e.message); }
+    return;
+  }
+
+  // 改薪资
+  m = cmd.match(/^改薪资\s+(.+)/);
+  if (m) {
+    try {
+      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+      const d = await r.json();
+      d.kb = d.kb || {};
+      d.salaryRange = m[1];
+      d.kb.salaryRange = m[1];
+      d.kb.updatedAt = new Date().toISOString();
+      await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+      showResult('✅ 薪资已改为 <b>' + m[1] + '</b>');
+      loadData();
+    } catch(e) { showResult('❌ 失败: ' + e.message); }
+    return;
+  }
+
+  showResult('🤔 未识别指令。输入 <b>帮助</b> 查看所有可用命令。');
+}
+
+// Enter键发送
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('adminCmd');
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') execAdminCmd(); });
+});
 
 loadData();
 setInterval(loadData, 30000);
