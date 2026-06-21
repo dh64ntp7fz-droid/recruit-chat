@@ -1203,6 +1203,12 @@ async function trackVisit() {
     data.visits = (data.visits||[]).concat([record]);
     data.totalVisitors = (data.totalVisitors||0) + 1;
     await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    // 新对话企微通知
+    fetch(WECOM_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ msgtype: 'markdown', markdown: { content: `📢 **新求职者访问**\n\n> 时间：${record.time}\n> 日期：${record.date}\n> 来源：招聘聊天系统\n\n总访问次数：${(data.totalVisitors||0)}次` } })
+    }).catch(() => {});
   } catch(e) { console.log('track err', e); }
 }
 
