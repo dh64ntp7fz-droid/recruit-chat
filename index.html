@@ -374,7 +374,9 @@ async function loadRemoteKB() {
     }
   } catch(e) { console.log('云端KB加载失败，使用本地KB'); }
 }
-loadRemoteKB();
+loadRemoteKB().then(() => syncKB());
+// 每60秒刷新一次云端数据，确保后台修改同步到聊天
+setInterval(() => { loadRemoteKB().then(() => syncKB()); }, 60000);
 
 // 合并KB：云端覆盖本地（同时更新全局KB引用）
 function syncKB() {
