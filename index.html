@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>湘阁里辣招聘店长助手</title>
+<style>
+/* ===== Splash Screen ===== */
+.splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #c21807 0%, #d4232c 40%, #e53935 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity .6s ease, transform .6s ease;
+}
+.splash.fadeout {
+  opacity: 0; transform: scale(1.08); pointer-events: none;
+}
+.splash .splash-logo {
+  width: 120px; height: 120px;
+  animation: splashBounce 1s ease;
+  margin-bottom: 24px;
+}
+.splash .splash-logo img {
+  width: 100%; height: 100%; object-fit: contain;
+}
+@keyframes splashBounce {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.15); }
+  70% { transform: scale(.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.splash h1 {
+  color: #fff; font-size: 28px; font-weight: 700;
+  letter-spacing: 2px; text-align: center;
+  animation: splashSlideUp .8s .3s both;
+}
+.splash h1 .gold { color: #ffd700; }
+@keyframes splashSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.splash .subtitle {
+  color: rgba(255,255,255,.7); font-size: 13px;
+  margin-top: 10px; letter-spacing: 1px;
+  animation: splashSlideUp .8s .5s both;
+}
+.splash .dots {
+  margin-top: 32px; display: flex; gap: 8px;
+  animation: splashSlideUp .8s .8s both;
+}
+.splash .dots span {
+  width: 8px; height: 8px; background: rgba(255,255,255,.6);
+  border-radius: 50%;
+  animation: splashDot 1.2s infinite;
+}
+.splash .dots span:nth-child(2) { animation-delay: .2s; }
+.splash .dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes splashDot {
+  0%,60%,100% { transform: scale(1); opacity: .4; }
+  30% { transform: scale(1.5); opacity: 1; }
+}
+.splash::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,215,0,.1) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #ff9a9e 60%, #fecfef 100%);
+  background-size: 400% 400%;
+  animation: bgShift 20s ease infinite;
+  height: 100vh; width: 100vw;
+  display: flex; flex-direction: column;
+  max-width: 480px; margin: 0 auto;
+  overflow: hidden;
+}
+@keyframes bgShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== Header ===== */
+.header {
+  background: #d4232c;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0; z-index: 10;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+.header .logo {
+  width: 54px; height: 54px;
+  flex-shrink: 0;
+}
+.header .logo img {
+  width: 100%; height: 100%; object-fit: contain;
+}
+.header .brand {
+  color: #fff; font-size: 17px; font-weight: 600;
+  letter-spacing: .5px;
+}
+.header .brand-sub {
+  color: rgba(255,255,255,.75);
+  font-size: 11px;
+  margin-left: auto; white-space: nowrap;
+}
+.header-tagline {
+  color: rgba(255,255,255,.85); font-size: 10px;
+  margin-top: 1px; display: block;
+}
+
+/* ===== Chat Area ===== */
+.chat-area {
+  flex: 1; overflow-y: auto;
+  padding: 10px 14px; display: flex; flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.chat-area::-webkit-scrollbar { display: none; }
+
+/* Messages */
+.msg-row {
+  display: flex; gap: 8px; align-items: flex-start;
+  max-width: 100%;
+}
+.msg-row.user { flex-direction: row-reverse; }
+.msg-row .avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.msg-row .avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.msg-row.system .avatar img {
+  object-fit: contain;
+  padding: 2px;
+}
+.msg-row.system .avatar {
+  background: #d4232c;
+}
+.msg {
+  position: relative;
+  padding: 9px 13px;
+  border-radius: 4px;
+  font-size: 14px; line-height: 1.6;
+  word-break: break-word;
+  max-width: 90%;
+}
+.msg.system {
+  background: #fff;
+  border-radius: 4px 12px 12px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+.msg.user {
+  background: #95ec69;
+  border-radius: 12px 4px 12px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.msg .sender {
+  font-size: 11px; color: #b0b0b0; margin-bottom: 3px;
+  display: none;
+}
+.msg.system .sender { color: #999; }
+
+/* Bubble tail */
+.msg.system::before {
+  content: '';
+  position: absolute; left: -6px; top: 8px;
+  width: 0; height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 8px solid #fff;
+}
+.msg.user::after {
+  content: '';
+  position: absolute; right: -6px; top: 8px;
+  width: 0; height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 8px solid #95ec69;
+}
+
+/* Welcome */
+.welcome { text-align: center; padding: 36px 10px 16px; }
+.welcome .logo-big { width: 56px; height: 56px; display: inline-block; margin-bottom: 12px; }
+.welcome .logo-big img { width: 100%; height: 100%; object-fit: contain; }
+.welcome p { color: #999; font-size: 13px; line-height: 1.8; }
+
+/* Typing */
+.typing { display: flex; gap: 4px; padding: 8px 0; }
+.typing span { width: 6px; height: 6px; background: #bbb; border-radius: 50%; animation: bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes bounce {
+  0%,60%,100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* ===== Input Area ===== */
+.input-area {
+  background: #f5f5f5; padding: 8px 12px 10px;
+  display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+  border-top: 1px solid #e0e0e0;
+}
+.input-area input {
+  flex: 1; height: 36px; border-radius: 4px;
+  border: 1px solid #e0e0e0; padding: 0 12px;
+  font-size: 14px; outline: none; background: #fff;
+  transition: border-color .2s;
+}
+.input-area input:focus { border-color: #d4232c; }
+.input-area button.send {
+  width: 52px; height: 36px; border-radius: 4px;
+  border: none; background: #d4232c; color: #fff;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ===== Intent Collection Toast ===== */
+.toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: rgba(0,0,0,.75); color: #fff; padding: 12px 24px;
+  border-radius: 8px; font-size: 13px; z-index: 999;
+  pointer-events: none; opacity: 0; transition: opacity .3s;
+}
+.toast.show { opacity: 1; }
+
+/* Highlight */
+.highlight { color: #d4232c; font-weight: 600; }
+
+/* ===== Inline Shortcut Buttons ===== */
+.inline-btn {
+  display: inline-block;
+  padding: 6px 12px; margin: 4px 6px 4px 0;
+  border-radius: 16px;
+  border: 1px solid #d4232c;
+  background: #fff;
+  color: #d4232c;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.inline-btn:active {
+  background: #d4232c; color: #fff;
+}
+.welcome-btns {
+  margin-top: 12px; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- Splash Screen -->
+<div class="splash" id="splash">
+  <div class="splash-logo"><img src="logo.png" alt="湘阁里辣"></div>
+  <h1>欢迎加入<span class="gold">湘阁里辣</span></h1>
+  <p class="subtitle">包吃包住 · 无需经验 · 工资4500起</p>
+  <div class="dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo"><img src="logo.png" alt="湘阁里辣"></div>
+  <div>
+    <span class="brand">湘阁里辣招聘店长助手</span>
+    <span class="header-tagline">包吃包住 · 无需经验 · 工资4500起 · 速来面试</span>
+  </div>
+  <span class="brand-sub">邹店长</span>
+</div>
+
+<!-- Chat Area -->
+<div class="chat-area" id="chatArea">
+</div>
+
+<!-- Input Area -->
+<div class="input-area">
+  <input type="text" id="userInput" placeholder="输入你的问题…" maxlength="200">
+  <button class="send" id="sendBtn">发送</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== Splash → 5秒后进入聊天 ====================
+(function() {
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    s.classList.add('fadeout');
+    setTimeout(() => s.remove(), 600);
+  }, 5000);
+})();
+
+// ==================== 知识库 ====================
+const KB = {
+  // 门店地址
+  stores: [
+    { name: '大朗环球店', addr: '大朗镇富康路环球贸易广场A座1楼101' },
+    { name: '凤岗天安数码城店', addr: '凤岗东深路凤岗段208号天安数码城S12号楼101室' },
+    { name: '长安锦厦店', addr: '长安镇一龙路309号101室' }
+  ],
+
+  // 岗位
+  jobs: [
+    { title: '服务员', age: '18-25岁', gender: '不限', exp: '有无经验均可，门店专人免费培训带教', duty: '接待进店顾客、引导入座、点单上菜、桌面清洁、回收餐具、及时响应顾客需求' },
+    { title: '咨客员', age: '17-26岁', gender: '仅限女性', exp: '有迎宾经验优先', duty: '门店门口迎宾、顾客等位登记、引导入座、指引卫生间/收银台、维护前厅环境' },
+    { title: '传菜员', age: '17-26岁', gender: '不限', exp: '有相关经验优先', duty: '前厅后厨菜品传递、回收空餐盘、清理过道杂物、协助前厅基础整理' },
+    { title: '煮饭大姐', age: '32-50岁', gender: '仅限女性', exp: '后厨相关经验优先', duty: '员工餐制作、后厨辅助配菜、厨具清洗、后厨区域卫生打扫' }
+  ],
+
+  interviewTime: '上午10:00–12:00、下午17:00–18:00',
+  interviewTimeNote: '⚠️ 面试接待时段为上午10:00–12:00、下午17:00–18:00，其余时间不接待，请合理安排到店时间。',
+
+  adminPassword: '我是无敌小帅',
+
+  salaryRange: '4500元起，具体面谈',
+  restDays: 4,
+  workHours: '10:00-14:30，17:00-22:00（14:30-17:00为午休私人时间，可自由外出）',
+
+  dorm: '宿舍免费入住，男女分开居住，多人上下铺；配备空调、热水器、独立卫浴、洗衣机、WiFi，采光通风良好。⚠️ 需办完完整入职手续后才可安排入住，面试通过不能立刻入住宿舍。',
+
+  materials: '正式入职需准备：①本人身份证 ②本人银行卡 ③ 健康证（不用面试当天准备，试用期结束确定长期留下后再办理即可）。<br><br>面试当天<b>无需携带任何证件</b>，以较好精神状态到店即可。',
+
+  trialPeriod: '前3天为试用期，试用期内无需健康证；3天内自行离职无薪资；入职7天内公司单方面解除劳动关系，按东莞最低标准80元/天结算；试用期结束双方确定长期入职后，再办理健康证上交门店。',
+
+  salaryDetail: '月薪4500元起，内含全勤、绩效、节日福利，无额外单独补贴。具体薪资以到店面试沟通确认为准，根据个人经验和能力可能有浮动。每月固定休息4天。每月15日发工资，只发银行卡。',
+
+  meals: '包午餐、晚餐，不提供早餐；宿舍免费入住，员工无需分摊水电费；自行在外租房居住无住房补贴。',
+
+  socialIns: '社保为自愿购买，不强制统一。如有需要可自行向门店申请缴纳。',
+
+  resign: '正式员工离职需提前1个月提交申请，未满一月离职扣除对应费用；不接受短期急辞工；旷工自离需承担门店临时聘请钟点工填补岗位产生的成本。',
+
+  uniform: '门店免费发放工装上衣，员工自备黑色裤子、黑色鞋子，不收取工装费用。',
+
+  baseRequirement: '待人热情、精神状态良好，做事主动有耐心，服从门店工作安排。',
+
+  appearance: '🚫 门店形象要求：\n\n① 不接受明显纹身（含花臂、颈部、手部等外露部位明显纹身）\n② 不接受非常鲜艳的染色/染发（如大红、亮蓝、亮紫、亮绿等夸张发色）\n③ 女生到店必须画淡妆\n④ 男生头发不允许过长（前不遮眼、侧不盖耳、后不触领）\n\n以上为硬性要求，不达标无法入职。',
+
+  partTime: '钟点工薪资、排班、工时相关信息不在线上解答，请查看门店朋友圈了解详情。本系统仅解答全职岗位相关咨询。',
+
+  // 团队文化（2026-06更新）
+  teamCulture: '店内主要成员年龄在18-25岁之间，年轻有活力，团队氛围非常好。湘阁里辣是21年东莞老品牌湘菜连锁，发展空间大，表现优秀者可晋升领班→店长助理→店长。',
+
+  // 品牌背书（搜索公开信息补充）
+  brandInfo: '湘阁里辣成立于2016年（东莞注册2017年），为中型餐饮连锁企业，员工规模超100人。以传承湘菜文化、精品菜与家传菜为特色，环境典雅舒适。大朗环球店为老字号门店，是品牌发源地。'
+};
+
+// ==================== 云端KB & 管理命令 ====================
+const BIN_URL = 'https://jsonblob.com/api/jsonBlob/019ee4d4-d90b-7467-b097-00bdc989803c';
+const CORS_PROXY = 'https://corsproxy.io/?';
+const ADMIN_PREFIX = 'xglr';
+let adminMode = false; // 管理对话模式
+let adminChallenge = false; // 暗号验证中
+let remoteKB = null;
+let convHistory = []; // 对话记忆
+
+async function loadRemoteKB() {
+  try {
+    const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+    const data = await r.json();
+    if (data.kb) {
+      remoteKB = data.kb;
+      // 恢复登记记录
+      if (remoteKB.registrations) KB.registrations = remoteKB.registrations;
+      console.log('✅ 已加载云端知识库，更新时间：', remoteKB.updatedAt || '未知');
+    }
+  } catch(e) { console.log('云端KB加载失败，使用本地KB'); }
+}
+loadRemoteKB();
+
+// 合并KB：云端覆盖本地（同时更新全局KB引用）
+function syncKB() {
+  if (!remoteKB) return;
+  Object.keys(remoteKB).forEach(k => {
+    if (k === 'updatedAt' || k === 'updatedBy' || k === 'customFAQ') return;
+    // 保护 jobs/stores 数组：云端为空或残缺时不覆盖
+    if ((k === 'jobs' || k === 'stores') && (!remoteKB[k] || !Array.isArray(remoteKB[k]) || remoteKB[k].length === 0)) return;
+    if (KB[k] !== undefined) KB[k] = remoteKB[k];
+  });
+  KB.customFAQ = remoteKB.customFAQ || [];
+}
+
+// 获取当前KB（含云端更新）
+function getKB() {
+  syncKB();
+  return KB;
+}
+
+// ===== 管理命令：精确指令模式 =====
+let adminHistory = [];
+
+async function adminUpdate(command) {
+  const cmd = command.trim();
+  
+  // 帮助
+  if (/^(帮助|help|？|\?)$/i.test(cmd)) {
+    return { ok: true, reply: `📋 <b>管理指令列表</b><br><br>` +
+      `➕ <b>加岗位 名称 年龄 性别 经验 工作内容</b><br>` +
+      `❌ <b>删岗位 名称</b><br>` +
+      `👤 <b>改性别 岗位名 男/女/不限</b><br>` +
+      `🎂 <b>改年龄 岗位名 年龄范围</b><br>` +
+      `💰 <b>改薪资 金额</b><br>` +
+      `📌 <b>看岗位</b> — 查看当前所有岗位<br>` +
+      `🔒 <b>退出管理</b> — 返回招聘对话` };
+  }
+
+  // 看岗位
+  if (/^看岗位/.test(cmd)) {
+    const list = KB.jobs.map((j, i) => `${i + 1}. <b>${j.title}</b> | ${j.age} | ${j.gender} | ${j.exp}`).join('\n');
+    return { ok: true, reply: `<b>📌 当前岗位（${KB.jobs.length}个）</b>\n\n${list}` };
+  }
+
+  // 删岗位 <名称>
+  let m = cmd.match(/^删岗位\s+(.+)/);
+  if (m) {
+    const name = m[1].trim();
+    const idx = KB.jobs.findIndex(j => j.title === name);
+    if (idx === -1) return { ok: true, reply: `❌ 未找到岗位「${name}」。当前岗位：${KB.jobs.map(j => j.title).join('、')}` };
+    const removed = KB.jobs.splice(idx, 1)[0];
+    await syncToCloud();
+    return { ok: true, reply: `✅ 已删除岗位「${removed.title}」。剩余${KB.jobs.length}个岗位：${KB.jobs.map(j => j.title).join('、')}` };
+  }
+
+  // 加岗位 <名称> <年龄> <性别> <经验> <内容>
+  m = cmd.match(/^加岗位\s+(\S+)\s+(\S+)\s+(男|女|不限)\s+(.+)/);
+  if (m) {
+    const [_, title, age, gender, rest] = m;
+    const dutyIdx = rest.lastIndexOf(' ');
+    let exp = rest, duty = '';
+    if (dutyIdx > 0) {
+      exp = rest.substring(0, dutyIdx);
+      duty = rest.substring(dutyIdx + 1);
+    }
+    KB.jobs.push({ title, age, gender, exp, duty });
+    await syncToCloud();
+    return { ok: true, reply: `✅ 已添加岗位「<b>${title}</b>」\n👤 ${gender} | 🎂 ${age}\n📋 ${exp}\n📝 ${duty}\n\n当前共${KB.jobs.length}个岗位。` };
+  }
+
+  // 改性别 <岗位名> <性别>
+  m = cmd.match(/^改性别\s+(\S+)\s+(男|女|不限)/);
+  if (m) {
+    const [_, name, gender] = m;
+    const j = KB.jobs.find(j => j.title === name);
+    if (!j) return { ok: true, reply: `❌ 未找到岗位「${name}」。可用：${KB.jobs.map(j => j.title).join('、')}` };
+    j.gender = gender === '女' ? '仅限女性' : gender === '男' ? '仅限男性' : '不限';
+    await syncToCloud();
+    return { ok: true, reply: `✅ 「${name}」性别已改为<b>${j.gender}</b>` };
+  }
+
+  // 改年龄 <岗位名> <年龄范围>
+  m = cmd.match(/^改年龄\s+(\S+)\s+(.+)/);
+  if (m) {
+    const [_, name, age] = m;
+    const j = KB.jobs.find(j => j.title === name);
+    if (!j) return { ok: true, reply: `❌ 未找到岗位「${name}」。可用：${KB.jobs.map(j => j.title).join('、')}` };
+    j.age = age;
+    await syncToCloud();
+    return { ok: true, reply: `✅ 「${name}」年龄已改为<b>${age}</b>` };
+  }
+
+  // 看登记
+  if (/^看登记/.test(cmd)) {
+    if (!KB.registrations || KB.registrations.length === 0) {
+      return { ok: true, reply: '📋 暂无面试登记记录。' };
+    }
+    const list = KB.registrations.slice(-20).map((r, i) =>
+      `${i + 1}. <b>${r.name}</b> → ${r.store} | ${r.date} ${r.time} | ${r.at}`
+    ).join('\n');
+    return { ok: true, reply: `<b>📋 面试登记（最近${Math.min(KB.registrations.length, 20)}条）</b>\n\n${list}` };
+  }
+
+  // 改薪资 <金额>
+  m = cmd.match(/^改薪资\s+(.+)/);
+  if (m) {
+    KB.salaryRange = m[1];
+    await syncToCloud();
+    return { ok: true, reply: `✅ 薪资已改为<b>${m[1]}</b>，求职者问工资时会显示新数字。` };
+  }
+
+  return { ok: false, reply: `🤔 未识别指令。输入<b>帮助</b>查看所有可用命令。` };
+}
+
+async function syncToCloud() {
+  try {
+    const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+    const blob = await r.json();
+    blob.kb = blob.kb || {};
+    Object.assign(blob.kb, {
+      storeCount: KB.storeCount,
+      workHours: KB.workHours,
+      trialPeriod: KB.trialPeriod,
+      meals: KB.meals,
+      salaryRange: KB.salaryRange,
+      stores: KB.stores,
+      jobs: KB.jobs,
+      registrations: KB.registrations || [],
+      brandInfo: KB.brandInfo,
+      adminPassword: KB.adminPassword,
+      updatedAt: new Date().toISOString()
+    });
+    await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(blob)
+    });
+    remoteKB = blob.kb;
+  } catch(e) { console.log('云端同步失败:', e.message); }
+}
+
+// ==================== 门店检测 ====================
+
+// ===== 面试登记状态机 =====
+let regState = null; // null | {step:'store'} | {step:'info',storeIdx:0}
+
+// ===== 企业微信通知 =====
+const WECOM_URL = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=d35ec9fd-b3e2-4132-848c-0fbc7ab38107';
+
+async function sendWecom(name, store, date, time) {
+  const text = `📋 **新面试预约**\n\n> 姓名：${name}\n> 门店：${store}\n> 日期：${date}\n> 时间：${time}\n> 来源：招聘聊天系统\n\n请及时跟进联系`;
+  const body = JSON.stringify({ msgtype: 'markdown', markdown: { content: text } });
+  const blob = new Blob([body], { type: 'application/json' });
+  const ok = navigator.sendBeacon(WECOM_URL, blob);
+  console.log(ok ? '✅ 企微通知已发送' : '❌ sendBeacon失败');
+}
+
+function parseRegInfo(text) {
+  // 尝试提取姓名、日期、时间
+  // 支持格式: "张三 6月22日 上午10点" / "李四 6月22 10:00" / "王五 明天上午"
+  let name = '', date = '', time = '';
+  
+  // 提取2-3个字的姓名（中文）
+  const nameMatch = text.match(/([\u4e00-\u9fa5]{2,3})(?:\s|，|,|$|6|\d)/);
+  if (nameMatch) name = nameMatch[1];
+  
+  // 提取日期
+  const dateMatch = text.match(/(\d{1,2})月(\d{1,2})[日号]/);
+  if (dateMatch) {
+    date = `${dateMatch[1]}月${dateMatch[2]}日`;
+  } else if (/明天/.test(text)) {
+    const tm = new Date(Date.now() + 86400000);
+    date = `${tm.getMonth()+1}月${tm.getDate()}日`;
+  } else if (/后天/.test(text)) {
+    const tm = new Date(Date.now() + 172800000);
+    date = `${tm.getMonth()+1}月${tm.getDate()}日`;
+  }
+  
+  // 提取时间
+  const timeMatch = text.match(/(上午|下午|早上|中午|傍晚)?\s*(\d{1,2})[点:时](\d{0,2})?/);
+  if (timeMatch) {
+    const ampm = timeMatch[1] || '';
+    const h = timeMatch[2];
+    const m = timeMatch[3] || '00';
+    time = `${ampm}${h}:${m.padStart(2,'0')}`;
+  }
+  
+  return { name, date, time };
+}
+
+function buildRegStoreButtons() {
+  return KB.stores.map((s,i) => 
+    `<span class="inline-btn" data-reg="store_${i}">${s.name}</span>`
+  ).join(' ');
+}
+function detectStore(t, rawText) {
+  // 全名匹配
+  if (/大朗环球|环球贸易|环球广场|富康路/.test(t)) return 0; // 大朗环球店
+  if (/凤岗天安|天安数码|凤岗.*天安|天安.*凤岗/.test(t)) return 1; // 凤岗天安数码城店
+  if (/长安锦厦|锦厦|一龙路|长安.*锦厦|锦厦.*长安/.test(t)) return 2; // 长安锦厦店
+  // 简写匹配
+  if (/大朗/.test(t)) return 0;
+  if (/凤岗/.test(t)) return 1;
+  if (/长安/.test(t)) return 2;
+  return -1;
+}
+
+// ==================== 关键词匹配引擎 ====================
+function matchQuery(text) {
+  const t = text.toLowerCase().replace(/\s+/g, '');
+
+  // 检测是否包含数字（年龄）
+  const ageMatch = t.match(/(\d{1,2})\s*岁/);
+  const rawAgeMatch = text.match(/(\d{1,2})\s*岁/);
+  let userAge = ageMatch ? parseInt(ageMatch[1]) : null;
+
+  // 检测纯数字（可能是年龄）
+  if (!userAge) {
+    const numMatch = t.match(/(?:我|今年|年龄)?(\d{2})\s*(?:岁|了)?/);
+    if (numMatch) userAge = parseInt(numMatch[1]);
+  }
+
+  // 暑假工检测
+  if (/暑假|暑期工|暑假工/.test(t)) return { type: 'summerJob' };
+
+  // 两人/结伴检测
+  if (/两人|2人|两个|一起|结伴|一块|同伴|朋友.*一起|带上|我和.*都|我俩|我和朋友/.test(t)) return { type: 'twoPeople' };
+
+  // 年龄拦截（低于17）
+  if (userAge !== null && userAge < 17) return { type: 'ageReject', age: userAge };
+  // 年龄在某个岗位范围外的后续再处理
+  if (userAge !== null) return { type: 'ageProvided', age: userAge, hasQuery: true };
+
+  // 纹身/染发/化妆/头发 形象拦截
+  if (/纹身|花臂|刺青|tattoo|染发|染头|发色|染色|夸张.*发|鲜艳.*发|红发|蓝发|紫发|绿发|化妆|妆容|淡妆|头发.*长|长发|发型/.test(t)) return { type: 'appearance' };
+
+  // 团队氛围
+  if (/团队|氛围|发展|晋升|升职|前途|成长|年轻人/.test(t)) return { type: 'team' };
+
+  // 品牌背景
+  if (/品牌|老字号|多少年|历史|成立|公司|企业/.test(t)) return { type: 'brand' };
+
+  // 招几个人
+  if (/招几个|招多少|要几个|招几个.*人|名额|还缺.*人|招满/.test(t)) return { type: 'headcount' };
+
+  // 有意向
+  if (/有意向|想了解|我想来|我要应聘|我要面试|怎么入职|想试试|想面试|感兴趣|招人吗|还招人|要人吗/.test(t)) return { type: 'intent' };
+
+  // 岗位相关
+  if (/招聘|岗位|招什么|招人|职位|工作内容|做什么|服务员|咨客|传菜|煮饭|大姐|后厨/.test(t)) {
+    // 检查是否是点击单个岗位按钮
+    for (let i = 0; i < KB.jobs.length; i++) {
+      if (text.trim() === KB.jobs[i].title) return { type: 'jobDetail', jobIdx: i };
+    }
+    return { type: 'jobs' };
+  }
+
+  // 性别追问拦截（不让GLM生成过激语句）
+  if (/煮饭.*男|男人.*煮饭|男.*做饭|男的.*煮饭|男生.*煮饭/.test(t)) return { type: 'cookGender' };
+  if (/咨客.*男|男的.*咨客/.test(t)) return { type: 'hostGender' };
+
+  // 面试/地址（先选门店）—— 只有明确问地点/怎么走才触发
+  if (/面试.*(?:地址|在哪|怎么.*去|地点|位置|门店)|地址|门店.*在哪|怎么去|到店|面谈/.test(t)) return { type: 'askStore' };
+
+  // 薪资
+  if (/薪资|工资|多少钱|月薪|待遇|薪酬|收入/.test(t)) return { type: 'salary' };
+
+  // 宿舍
+  if (/宿舍|住宿|住|房间|床位|房子|空调|热水|wifi|环境/.test(t)) return { type: 'dorm' };
+
+  // 入职材料
+  if (/入职.*材料|材料|带什么|健康证|身份证|银行卡|证件/.test(t)) return { type: 'materials' };
+
+  // 上班时长
+  if (/上班.*时间|上班时间|几点|时长|工时|作息|工作时间|几点上班|几点下班|休息/.test(t)) return { type: 'workHours' };
+
+  // 试用期
+  if (/试用|试用期|试工|前.*天|考核/.test(t)) return { type: 'trial' };
+
+  // 社保
+  if (/社保|保险|五险/.test(t)) return { type: 'socialIns' };
+
+  // 离职
+  if (/离职|辞职|辞工|不干|自离|旷工/.test(t)) return { type: 'resign' };
+
+  // 工装
+  if (/工装|工服|衣服|裤子|鞋子|工作服/.test(t)) return { type: 'uniform' };
+
+  // 吃饭
+  if (/吃饭|包吃|伙食|午餐|晚餐|早餐|饭菜/.test(t)) return { type: 'meals' };
+
+  // 钟点工
+  if (/钟点|兼职|小时工|临时|短工/.test(t)) return { type: 'partTime' };
+
+  // 休息
+  if (/休息|放假|假期|月休|休假/.test(t)) return { type: 'rest' };
+
+  // 门店指定检测（在具体话题之后、面试之前，避免误拦截宿舍/薪资等话题）
+  const storeIdx2 = detectStore(t, text);
+  if (storeIdx2 >= 0) return { type: 'storePick', storeIdx: storeIdx2 };
+
+  // 自定义FAQ匹配（云端KB）
+  if (KB.customFAQ && KB.customFAQ.length) {
+    const t2 = text.toLowerCase();
+    for (const faq of KB.customFAQ) {
+      if (t2.includes(faq.q.toLowerCase()) || faq.q.includes(text)) {
+        return { type: 'customFAQ', answer: faq.a, question: faq.q };
+      }
+    }
+  }
+
+  // 默认兜底
+  return { type: 'fallback' };
+}
+
+// ==================== 响应生成 ====================
+function generateResponse(match, originalText) {
+  let resp = '';
+  let appendTime = false;
+
+  switch (match.type) {
+    case 'intent':
+      // 启动面试登记流程
+      regState = {step:'store'};
+      resp = '收到你的求职意向！🎉\n\n请先选择你想面试的门店：<br><br>' + buildRegStoreButtons();
+      appendTime = false;
+      collectIntent(originalText);
+      break;
+
+    case 'summerJob':
+      resp = '抱歉，湘阁里辣仅招聘全职岗位，不招暑假工。如有长期工作意向，欢迎到店面谈。';
+      break;
+
+    case 'twoPeople':
+      resp = '抱歉，湘阁里辣不接受两人同时入职。即使两人都符合条件，也需分先后入职。可先安排一人到店面谈，另一人后续再来。';
+      appendTime = true;
+      break;
+
+    case 'ageReject':
+      resp = `抱歉，你的年龄（${match.age}岁）不符合岗位年龄要求，湘阁里辣最低入职年龄为17周岁，无法办理入职。`;
+      break;
+
+    case 'ageProvided':
+      // 基于年龄推荐匹配岗位
+      resp = buildAgeMatchResponse(match.age);
+      if (/面试|地址|面谈|到店/.test(originalText)) appendTime = true;
+      break;
+
+    case 'jobs':
+      resp = '📌 <b>我们有以下岗位正在招聘：</b>\n\n请点击了解具体岗位详情：<br><br>' + 
+        KB.jobs.map((j,i) => `<span class="inline-btn" data-q="${j.title}">${j.title}</span>`).join(' ');
+      if (/面试|地址|面谈|到店/.test(originalText)) appendTime = true;
+      break;
+
+    case 'jobDetail':
+      resp = buildSingleJobResponse(match.jobIdx);
+      if (/面试|地址|面谈|到店/.test(originalText)) appendTime = true;
+      break;
+
+    case 'askStore':
+      regState = {step:'store'};
+      resp = '📍 <b>请选择您想面试的门店：</b><br><br>' + buildRegStoreButtons();
+      break;
+
+    case 'storePick':
+      resp = buildSingleStoreResponse(match.storeIdx);
+      appendTime = true;
+      break;
+
+    case 'salary':
+      resp = `💰 <b>薪资待遇</b>\n\n月薪：<span class="highlight">${KB.salaryRange}</span>\n具体薪资以到店面试沟通确认为准，根据个人经验能力可能有浮动。\n\n薪资内含全勤、绩效、节日福利，无额外单独补贴。\n每月固定休息<span class="highlight">${KB.restDays}天</span>。\n每月15日发工资，只发银行卡。`;
+      break;
+
+    case 'dorm':
+      resp = `🏠 <b>宿舍环境</b>\n\n${KB.dorm}`;
+      break;
+
+    case 'materials':
+      resp = `📋 <b>入职必备材料</b>\n\n${KB.materials}\n\n材料不齐无法办理正式入职、正常上岗。`;
+      break;
+
+    case 'workHours':
+      resp = `⏰ <b>工作时间</b>\n\n${KB.workHours}`;
+      break;
+
+    case 'trial':
+      resp = `📝 <b>试用期规则</b>\n\n${KB.trialPeriod}`;
+      break;
+
+    case 'socialIns':
+      resp = `🏥 <b>社保</b>\n\n${KB.socialIns}`;
+      break;
+
+    case 'resign':
+      resp = `📤 <b>离职规定</b>\n\n${KB.resign}`;
+      break;
+
+    case 'uniform':
+      resp = `👔 <b>工装标准</b>\n\n${KB.uniform}`;
+      break;
+
+    case 'meals':
+      resp = `🍚 <b>食宿政策</b>\n\n${KB.meals}`;
+      break;
+
+    case 'partTime':
+      resp = `${KB.partTime}`;
+      break;
+
+    case 'headcount':
+      resp = '目前每个岗位最多再招2人，具体以当天到店面谈确认为准。建议你尽快安排时间到店。';
+      appendTime = true;
+      break;
+
+    case 'cookGender':
+      resp = '煮饭大姐岗位目前仅招募女性，这是岗位性质决定的，谢谢理解～\n\n其他岗位（服务员、传菜员）男女均可报名，欢迎到店了解。';
+      break;
+
+    case 'hostGender':
+      resp = '咨客员岗位目前仅招募女性，这是岗位性质决定的，谢谢理解～\n\n其他岗位（服务员、传菜员）男女均可报名，欢迎到店了解。';
+      break;
+
+    case 'rest':
+      resp = `每月固定休息<span class="highlight">${KB.restDays}天</span>，具体排班由门店统一安排。`;
+      break;
+
+    case 'appearance':
+      resp = KB.appearance;
+      break;
+
+    case 'team':
+      resp = `🏠 <b>团队氛围与发展</b>\n\n${KB.teamCulture}`;
+      break;
+
+    case 'brand':
+      resp = `🏢 <b>关于湘阁里辣</b>\n\n${KB.brandInfo}`;
+      break;
+
+    case 'customFAQ':
+      resp = match.answer;
+      break;
+
+    case 'fallback':
+    default:
+      resp = `这个问题我暂时无法直接回答。\n\n建议直接联系店长微信详细咨询。\n\n或者试试点击下方按钮快速了解：<br><br><span class="inline-btn" data-q="招聘什么岗位">招聘什么岗位</span> <span class="inline-btn" data-q="面试时间&门店地址">面试门店地址</span> <span class="inline-btn" data-q="薪资待遇">薪资待遇</span> <span class="inline-btn" data-q="宿舍环境">宿舍环境</span> <span class="inline-btn" data-q="入职需要什么材料">入职材料</span> <span class="inline-btn" data-q="上班时长">上班时长</span>`;
+      break;
+  }
+
+  // 如果涉及面试，追加时段提醒
+  if (appendTime && !resp.includes('面试接待时段')) {
+    resp += `\n\n${KB.interviewTimeNote}`;
+  }
+
+  // 追加快捷按钮
+  resp = appendButtons(resp, match.type);
+
+  return resp;
+}
+
+function buildJobsResponse() {
+  let r = `📌 <b>湘阁里辣招聘岗位</b>\n\n统一要求：${KB.baseRequirement}\n\n`;
+  KB.jobs.forEach((j, i) => {
+    r += `<b>${i+1}. ${j.title}</b>\n`;
+    r += `年龄：${j.age} | ${j.gender}\n`;
+    r += `经验：${j.exp}\n`;
+    r += `工作内容：${j.duty}\n`;
+    if (i < KB.jobs.length - 1) r += '\n';
+  });
+  return r;
+}
+
+function buildSingleJobResponse(idx) {
+  const j = KB.jobs[idx];
+  return `<b>📌 ${j.title}</b>\n\n` +
+    `👤 性别要求：${j.gender}\n` +
+    `🎂 年龄要求：${j.age}\n` +
+    `📋 经验要求：${j.exp}\n` +
+    `📝 工作内容：${j.duty}\n` +
+    `💰 月薪：${KB.salaryRange}\n\n` +
+    KB.baseRequirement;
+}
+
+// 在回复末尾追加快捷按钮
+function appendButtons(resp, matchType) {
+  if (/面试登记/.test(resp)) return resp; // 登记流程不追加
+  if (resp.includes('inline-btn')) return resp; // 已有按钮不追加
+  
+  let btns = '';
+  if (matchType === 'intent' || matchType === 'askStore') {
+    // 已有门店选择按钮，不追加
+    return resp;
+  } else if (matchType === 'jobs') {
+    btns = KB.jobs.map(j => `<span class="inline-btn" data-q="${j.title}">${j.title}</span>`).join(' ');
+  } else if (matchType === 'jobDetail') {
+    btns = `<span class="inline-btn" data-q="面试怎么去">面试怎么去</span> <span class="inline-btn" data-q="薪资多少">薪资多少</span> <span class="inline-btn" data-q="宿舍怎么样">宿舍怎么样</span>`;
+  } else {
+    btns = `<span class="inline-btn" data-q="招聘什么岗位">招聘什么岗位</span> <span class="inline-btn" data-q="面试怎么去">面试怎么去</span> <span class="inline-btn" data-q="薪资多少">薪资多少</span> <span class="inline-btn" data-q="宿舍怎么样">宿舍怎么样</span>`;
+  }
+  return resp + '\n\n' + btns;
+}
+
+function buildAgeMatchResponse(age) {
+  // 找到年龄匹配的岗位
+  const matched = KB.jobs.filter(j => {
+    const [lo, hi] = j.age.split('-').map(Number);
+    return age >= lo && age <= hi;
+  });
+
+  if (matched.length === 0) {
+    const minAge = Math.min(...KB.jobs.map(j => parseInt(j.age.split('-')[0])));
+    const maxAge = Math.max(...KB.jobs.map(j => parseInt(j.age.split('-')[1])));
+    if (age > maxAge && age < 32) {
+      return `你${age}岁，目前没有直接匹配的岗位。煮饭大姐岗位要求32-50岁，如果你有兴趣可以再等几年。\n\n其他地方岗位年龄要求：${KB.jobs.filter(j=>j.title!=='煮饭大姐').map(j=>j.title+j.age).join('、')}`;
+    }
+    if (age > 50) {
+      return `抱歉，你${age}岁，目前湘阁里辣岗位最高年龄要求50岁（煮饭大姐），暂时没有匹配岗位。`;
+    }
+    return `你${age}岁，目前没有精确匹配的岗位。建议到店面谈，店长会根据实际情况评估。`;
+  }
+
+  let r = `你${age}岁，根据年龄匹配以下岗位：\n\n`;
+  matched.forEach((j, i) => {
+    r += `<b>${j.title}</b>（${j.age} | ${j.gender}）\n`;
+    r += `工作内容：${j.duty}\n`;
+    if (i < matched.length - 1) r += '\n';
+  });
+  r += `\n${KB.baseRequirement}`;
+  return r;
+}
+
+function buildInterviewResponse() {
+  let r = `📍 <b>面试门店地址</b>\n\n`;
+  KB.stores.forEach(s => {
+    r += `<b>${s.name}</b>\n${s.addr}\n\n`;
+  });
+  r += `无需预约，以较好精神状态在规定时段到店即可，无需携带证件。`;
+  return r;
+}
+
+function buildStoreButtons() {
+  return KB.stores.map(s => `<span class="inline-btn" data-q="${s.name}">${s.name}</span>`).join(' ');
+}
+
+function buildSingleStoreResponse(idx) {
+  const s = KB.stores[idx];
+  return `📍 <b>${s.name}</b>\n地址：${s.addr}\n\n⏰ 面试接待时段：\n上午 10:00–12:00\n下午 17:00–18:00\n\n无需预约，以较好精神状态在规定时段到店即可，无需携带证件。`;
+}
+
+// ==================== 意向收集 ====================
+function collectIntent(text) {
+  const time = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+  console.log(`[意向收集] ${time} | 内容: ${text}`);
+  // 实际项目中这里会提交到后端数据库
+  // 此处本地存储作为演示
+  try {
+    const intents = JSON.parse(localStorage.getItem('xglr_intents') || '[]');
+    intents.push({ time, text, userAgent: navigator.userAgent });
+    localStorage.setItem('xglr_intents', JSON.stringify(intents));
+  } catch(e) {}
+}
+
+// ==================== 聊天UI ====================
+const chatArea = document.getElementById('chatArea');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const toast = document.getElementById('toast');
+
+function scrollBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 求职者随机头像（会话内固定）
+let _userAvatarHtml = null;
+function getUserAvatar() {
+  if (_userAvatarHtml) return _userAvatarHtml;
+  const emojis = ['😊','🙂','😄','🤗','👩','👨','🧑','😎','🤩','🥳','🙋','💁','🧒','👧','👦'];
+  const colors = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F','#BB8FCE','#85C1E9','#F8C471','#82E0AA'];
+  const e = emojis[Math.floor(Math.random() * emojis.length)];
+  const c = colors[Math.floor(Math.random() * colors.length)];
+  _userAvatarHtml = `<div style="width:100%;height:100%;background:${c};display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:4px;">${e}</div>`;
+  return _userAvatarHtml;
+}
+
+function addMsg(text, role) {
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+
+  // 头像
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  if (role === 'system') {
+    avatar.innerHTML = '<img src="logo.png" alt="">';
+  } else {
+    avatar.innerHTML = getUserAvatar();
+  }
+
+  // 气泡
+  const bubble = document.createElement('div');
+  bubble.className = `msg ${role}`;
+  if (role === 'system') {
+    bubble.innerHTML = text.replace(/\n/g, '<br>');
+  } else {
+    bubble.textContent = text;
+  }
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatArea.appendChild(row);
+  scrollBottom();
+}
+
+function addTyping() {
+  const row = document.createElement('div');
+  row.className = 'msg-row system typing-indicator';
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.innerHTML = '<img src="logo.png" alt="">';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg system';
+  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatArea.appendChild(row);
+  scrollBottom();
+  return row;
+}
+
+function removeTyping(el) {
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function stripHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+async function handleUserMessage(text) {
+  if (!text.trim()) return;
+  const msg = text.trim();
+
+  // 首次访问追踪
+  trackVisit();
+
+  // 显示用户消息
+  addMsg(msg, 'user');
+  userInput.value = '';
+
+  // 🔧 面试登记流程中
+  if (regState && regState.step === 'info') {
+    const info = parseRegInfo(msg);
+    // 消息没有姓名、日期、时间 → 不算登记，走正常问答
+    if (!info.name && !info.date && !info.time) {
+      addMsg('👋 如需继续登记请提供姓名+日期+时间，或者直接问我其他问题～', 'system');
+      regState = null;
+      resetIdleTimer();
+      return;
+    }
+    const s = KB.stores[regState.storeIdx];
+    const name = info.name || msg.slice(0, 4);
+    const date = info.date || '待确认';
+    const time = info.time || '待确认';
+    
+    // 保存登记记录
+    if (!KB.registrations) KB.registrations = [];
+    KB.registrations.push({
+      name, store: s.name, date, time, addr: s.addr,
+      at: new Date().toLocaleString('zh-CN', {timeZone:'Asia/Shanghai'})
+    });
+    if (KB.registrations.length > 50) KB.registrations = KB.registrations.slice(-50);
+    syncToCloud();
+    
+    // 发送企微通知
+    sendWecom(name, s.name, date, time);
+    
+    // 确认回复
+    const tEl = addTyping();
+    await new Promise(r => setTimeout(r, 800));
+    removeTyping(tEl);
+    
+    let confirmMsg = `✅ <b>面试登记成功！已通知店长</b>\n\n` +
+      `👤 姓名：${name}\n` +
+      `📍 门店：${s.name}\n` +
+      `📅 日期：${date}\n` +
+      `⏰ 时间：${time}\n` +
+      `📍 地址：${s.addr}\n\n` +
+      `请以 <b>较好精神状态</b> 按时到店，店长会亲自接待。面试无需携带证件。\n\n` +
+      `如时间有变可重新登记。`;
+    
+    addMsg(confirmMsg, 'system');
+    regState = null;
+    resetIdleTimer();
+    return;
+  }
+
+  // 🔐 管理暗号两步验证
+  if (msg === KB.adminPassword) {
+    adminChallenge = true;
+    addMsg('🤔 无敌小帅是谁？', 'system');
+    resetIdleTimer();
+    return;
+  }
+  if (adminChallenge) {
+    if (msg === '邹慧明') {
+      adminChallenge = false;
+      adminMode = true;
+      adminHistory = [];
+      addMsg('🔓 <b>暗号正确！已进入管理模式</b>\n\n输入<b>帮助</b>查看所有可用指令。', 'store');
+    } else {
+      adminChallenge = false;
+      addMsg('❌ 验证失败，已退出', 'system');
+    }
+    resetIdleTimer();
+    return;
+  }
+
+  // 🔧 管理对话模式中
+  if (adminMode) {
+    if (msg === '退出管理' || msg === 'exit') {
+      adminMode = false;
+      adminChallenge = false;
+      adminHistory = [];
+      addMsg('🔒 <b>已退出管理模式</b>，回到招聘对话', 'system');
+      resetIdleTimer();
+      return;
+    }
+    const typing = addTyping();
+    const result = await adminUpdate(msg);
+    removeTyping(typing);
+    addMsg(result.ok ? result.reply : '❌ ' + result.reply, 'system');
+    resetIdleTimer();
+    return;
+  }
+
+  // 显示输入中效果
+  const typingEl = addTyping();
+  await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+  removeTyping(typingEl);
+
+  // 匹配并生成回复
+  const match = matchQuery(msg);
+  const response = generateResponse(match, msg);
+
+  // fallback：关键词没命中，调用 AI 理解
+  if (match.type === 'fallback') {
+    const typing2 = addTyping();
+    const aiReply = await callAI(msg);
+    removeTyping(typing2);
+    const replyText = aiReply || generateResponse(match, msg);
+    addMsg(replyText, 'system');
+    convHistory.push({ q: msg, a: stripHtml(replyText) });
+    trackMsg(msg, stripHtml(replyText));
+  } else {
+    addMsg(response, 'system');
+    convHistory.push({ q: msg, a: stripHtml(response) });
+    trackMsg(msg, stripHtml(response));
+  }
+
+  // 重置空闲计时器
+  resetIdleTimer();
+}
+
+// ===== 空闲超时逻辑 =====
+let idlePromptTimer = null;
+let idleCloseTimer = null;
+let idleClosed = false;
+
+function resetIdleTimer() {
+  clearTimeout(idlePromptTimer);
+  clearTimeout(idleCloseTimer);
+  idleClosed = false;
+
+  // 5秒未回应 → 追问
+  idlePromptTimer = setTimeout(() => {
+    if (idleClosed) return;
+    const kws = ['薪资待遇','面试门店地址','岗位详情'];
+    const btns = kws.map(k => `<span class="inline-btn" data-q="${k}">${k}</span>`).join(' ');
+    addMsg(`🤔 <b>您还需要了解什么吗？</b>\n${btns}`, 'system');
+
+    // 再等55秒（总共60秒）→ 关闭
+    idleCloseTimer = setTimeout(() => {
+      addMsg('⏰ 对话已自动关闭，如有需要请重新打开页面。感谢您的关注！', 'system');
+      idleClosed = true;
+      clearTimeout(idlePromptTimer);
+    }, 30000);
+  }, 30000);
+}
+
+// ===== AI 兜底调用：直连智谱 GLM =====
+const GLM_KEY = '5eaf93d050a147069e245773d10ffe8d.qwYjpJkANCt9uo2r';
+
+// ===== 数据追踪（直写 JSONBlob） =====
+// BIN_URL 已在云端KB部分定义
+let visitTracked = false;
+
+async function trackVisit() {
+  if (visitTracked) return;
+  visitTracked = true;
+  const now = new Date();
+  const record = {
+    time: now.toLocaleTimeString('zh-CN',{hour12:false}),
+    date: now.toLocaleDateString('zh-CN'),
+    ts: now.toISOString()
+  };
+  try {
+    // Read current, append, write back
+    const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+    const data = await r.json();
+    data.visits = (data.visits||[]).concat([record]);
+    data.totalVisitors = (data.totalVisitors||0) + 1;
+    await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  } catch(e) { console.log('track err', e); }
+}
+
+async function trackMsg(q, a) {
+  const now = new Date();
+  const record = {
+    time: now.toLocaleTimeString('zh-CN',{hour12:false}),
+    date: now.toLocaleDateString('zh-CN'),
+    ts: now.toISOString(),
+    q, a
+  };
+  try {
+    const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
+    const data = await r.json();
+    data.messages = (data.messages||[]).concat([record]);
+    await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  } catch(e) { console.log('track err', e); }
+}
+
+async function callAI(question) {
+  try {
+    const sysPrompt = `你是湘阁里辣的店长招聘助手，在东莞经营湘菜连锁餐厅。只回答招聘相关问题，不闲聊。
+
+招聘信息：
+- 4个岗位：服务员(18-25岁)、咨客员(17-26岁女性)、传菜员(17-26岁)、煮饭大姐(32-50岁，仅限女性)
+- 月薪4500元起，具体薪资需面试面谈确定，每月15日发工资，只发银行卡
+- 包午餐晚餐，宿舍免费配WiFi空调热水器
+- 面试：每天10:00-12:00、17:00-18:00，直接到店面谈不需预约
+- 入职材料：身份证+银行卡+健康证（健康证试用期后办理）
+- 试用期3天，试用期不需健康证，转正后再办
+- 宿舍仅正式入职后入住
+- 社保为自愿购买，不强制统一，离职需提前1月
+- 有纹身、染鲜亮发色不接受，女生需画淡妆，男生头发不过长
+- 暑假工不招，年龄<17岁不招，两人同行不招
+- 每店最多招2人
+- 团队年轻有活力(18-25岁)，发展空间大，可晋升领班/店长助理/店长
+
+门店：大朗环球店(大朗镇环球广场)、长安锦厦店(长安镇一龙路)、凤岗天安店(凤岗镇天安数码城)
+
+要求：回答简洁在150字以内，不确定时建议到店面谈，保持亲切礼貌语气。`;
+
+    // 构建消息列表（含对话历史记忆）
+    const messages = [{ role: 'system', content: sysPrompt }];
+    // 注入最近6轮对话
+    const recent = convHistory.slice(-6);
+    recent.forEach(h => {
+      messages.push({ role: 'user', content: h.q });
+      messages.push({ role: 'assistant', content: h.a });
+    });
+    messages.push({ role: 'user', content: question });
+
+    const res = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GLM_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'glm-4-flash',
+        messages,
+        temperature: 0.7,
+        max_tokens: 300
+      })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (e) {
+    console.error('AI 调用失败:', e);
+    return null;
+  }
+}
+
+// 发送按钮
+sendBtn.addEventListener('click', () => handleUserMessage(userInput.value));
+userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleUserMessage(userInput.value);
+});
+
+// 聊天区域内的内联按钮点击（事件委托）
+chatArea.addEventListener('click', (e) => {
+  if (e.target.classList.contains('inline-btn')) {
+    // 面试登记：门店选择
+    if (e.target.dataset.reg) {
+      const regParts = e.target.dataset.reg.split('_');
+      if (regParts[0] === 'store' && regState && regState.step === 'store') {
+        const storeIdx = parseInt(regParts[1]);
+        regState = {step:'info', storeIdx};
+        const s = KB.stores[storeIdx];
+        addMsg(`✅ 已选择 <b>${s.name}</b>\n\n请按以下格式回复你的信息：\n\n<b>姓名 + 日期 + 时间</b>\n\n例如：<code>张三 6月22日 上午10点</code>`, 'system');
+        resetIdleTimer();
+        scrollBottom();
+        return;
+      }
+    }
+    // 普通快捷按钮
+    const q = e.target.dataset.q;
+    handleUserMessage(q);
+    // 视觉反馈
+    e.target.style.background = '#d4232c';
+    e.target.style.color = '#fff';
+    setTimeout(() => {
+      e.target.style.background = '#fff';
+      e.target.style.color = '#d4232c';
+    }, 200);
+  }
+});
+
+// 初始滚动
+scrollBottom();
+
+// ==================== 意向收集统计（管理入口：控制台） ====================
+console.log('湘阁里辣招聘聊天系统已就绪');
+console.log('意向收集数据：localStorage.getItem("xglr_intents")');
+
+// ==================== 启动：自动发送欢迎语 ====================
+setTimeout(() => {
+  const welcomeMsg = `👋 你好，我是湘阁里辣的店长招聘助手<br>有什么需要了解的您可以直接问我<br><br><span class="inline-btn" data-q="招聘什么岗位">招聘什么岗位</span> <span class="inline-btn" data-q="面试时间&门店地址">面试门店地址</span> <span class="inline-btn" data-q="薪资待遇">薪资待遇</span> <span class="inline-btn" data-q="宿舍环境">宿舍环境</span> <span class="inline-btn" data-q="入职需要什么材料">入职材料</span> <span class="inline-btn" data-q="上班时长">上班时长</span>`;
+  addMsg(welcomeMsg, 'system');
+  resetIdleTimer();
+}, 300);
+</script>
+</body>
+</html>
