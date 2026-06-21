@@ -529,10 +529,16 @@ const WECOM_URL = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=d35ec9fd
 
 async function sendWecom(name, store, date, time) {
   const text = `📋 **新面试预约**\n\n> 姓名：${name}\n> 门店：${store}\n> 日期：${date}\n> 时间：${time}\n> 来源：招聘聊天系统\n\n请及时跟进联系`;
-  const body = JSON.stringify({ msgtype: 'markdown', markdown: { content: text } });
-  const blob = new Blob([body], { type: 'application/json' });
-  const ok = navigator.sendBeacon(WECOM_URL, blob);
-  console.log(ok ? '✅ 企微通知已发送' : '❌ sendBeacon失败');
+  try {
+    await fetch(WECOM_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ msgtype: 'markdown', markdown: { content: text } })
+    });
+    console.log('✅ 企微通知已发送');
+  } catch(e) {
+    console.log('❌ 企微通知失败:', e.message);
+  }
 }
 
 function parseRegInfo(text) {
@@ -1277,14 +1283,32 @@ userInput.addEventListener('keydown', (e) => {
 // 聊天区域内的内联按钮点击（事件委托）
 chatArea.addEventListener('click', (e) => {
   if (e.target.classList.contains('inline-btn')) {
+    // 面试登记确认/取消
+    if (e.target.dataset.reg === 'yes') {
+      if (regState && regState.step === 'confirm') {
+        regState.step = 'info';
+        const s = KB.stores[regState.storeIdx];
+        addMsg(`✅ <b>开始登记</b>\n\n请按以下格式回复你的信息：\n\n<b>姓名 + 日期 + 时间</b>\n\n例如：<code>张三 6月22日 上午10点</code>`, 'system');
+        resetIdleTimer();
+        scrollBottom();
+        return;
+      }
+    }
+    if (e.target.dataset.reg === 'no') {
+      regState = null;
+      addMsg('好的，有需要随时找我了解 😊', 'system');
+      resetIdleTimer();
+      scrollBottom();
+      return;
+    }
     // 面试登记：门店选择
     if (e.target.dataset.reg) {
       const regParts = e.target.dataset.reg.split('_');
       if (regParts[0] === 'store' && regState && regState.step === 'store') {
         const storeIdx = parseInt(regParts[1]);
-        regState = {step:'info', storeIdx};
+        regState = {step:'confirm', storeIdx};
         const s = KB.stores[storeIdx];
-        addMsg(`✅ 已选择 <b>${s.name}</b>\n\n请按以下格式回复你的信息：\n\n<b>姓名 + 日期 + 时间</b>\n\n例如：<code>张三 6月22日 上午10点</code>`, 'system');
+        addMsg(`📍 已选择 <b>${s.name}</b>\n\n需要登记面试吗？<br><br><span class="inline-btn" data-reg="yes">✅ 登记面试</span> <span class="inline-btn" data-reg="no">👋 看看而已</span>`, 'system');
         resetIdleTimer();
         scrollBottom();
         return;

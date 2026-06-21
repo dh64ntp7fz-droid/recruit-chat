@@ -6,31 +6,53 @@
 <title>招聘助手 · 管理后台</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,PingFang SC,sans-serif;background:#f5f5f5;padding:16px;max-width:600px;margin:0 auto}
+body{font-family:-apple-system,PingFang SC,sans-serif;background:#f5f5f5;padding:16px;max-width:640px;margin:0 auto}
 h1{font-size:20px;color:#d4232c;margin-bottom:4px}
-.sub{font-size:12px;color:#999;margin-bottom:20px}
+.sub{font-size:12px;color:#999;margin-bottom:16px}
 .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.stat-row{display:flex;gap:12px;margin-bottom:14px}
+.card-title{font-weight:600;font-size:15px;margin-bottom:10px}
+.stat-row{display:flex;gap:12px;margin-bottom:0}
 .stat{flex:1;background:#fff;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .stat .num{font-size:32px;font-weight:700;color:#d4232c}
 .stat .label{font-size:12px;color:#999;margin-top:4px}
-.visit-item{padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-.visit-item .time{color:#999;font-size:11px}
-.msg-item{background:#fafafa;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px}
-.msg-item .q{color:#d4232c;font-weight:600}
-.msg-item .a{color:#333;margin-top:4px}
-.msg-item .time{color:#aaa;font-size:11px;float:right}
-.empty{text-align:center;color:#ccc;padding:30px 0;font-size:14px}
-.reg-item{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.conv-session{border:1px solid #eee;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.conv-header{padding:10px 12px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#fafafa;user-select:none}
+.conv-header:hover{background:#f0f0f0}
+.conv-header .count{color:#d4232c;font-weight:600}
+.conv-body{display:none;padding:10px 12px;border-top:1px solid #eee}
+.conv-body.open{display:block}
+.conv-msg{background:#fafafa;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+.conv-msg .q{color:#d4232c;font-weight:500}
+.conv-msg .a{color:#333;margin-top:2px}
+.conv-msg .time{color:#aaa;font-size:11px;float:right}
+.reg-item{padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.reg-item:last-child{border-bottom:none}
 .reg-item .name{font-weight:600;color:#d4232c}
-.reg-item .meta{color:#999;font-size:11px}
-.fold-toggle{color:#d4232c;cursor:pointer;font-size:12px;text-align:center;padding:8px 0}
+.reg-item .meta{color:#999;font-size:11px;margin-top:2px}
+.fold-toggle{color:#d4232c;cursor:pointer;font-size:12px;text-align:center;padding:6px 0}
 .fold-toggle:hover{text-decoration:underline}
 .folded{display:none}
 .btn{display:inline-block;padding:8px 20px;background:#d4232c;color:#fff;border-radius:6px;font-size:13px;border:none;cursor:pointer}
 .btn:hover{opacity:.9}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:4px}
+.btn-outline{background:#fff;color:#d4232c;border:1px solid #d4232c}
+input,select{height:34px;border-radius:6px;border:1px solid #e0e0e0;padding:0 10px;font-size:13px;outline:none;width:100%}
+input:focus,select:focus{border-color:#d4232c}
+.form-row{display:flex;gap:8px;margin-bottom:8px}
+.form-row>*{flex:1}
+.job-card{background:#fafafa;border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13px;display:flex;justify-content:space-between;align-items:flex-start}
+.job-card .info{flex:1}
+.job-card .info .title{font-weight:600;color:#d4232c}
+.job-card .info .detail{color:#666;font-size:12px;margin-top:2px}
+.empty{text-align:center;color:#ccc;padding:20px 0;font-size:14px}
+.visit-item{padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:12px;color:#999}
 .refresh-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .auto{font-size:11px;color:#999}
+.kb-table{width:100%;font-size:12px;border-collapse:collapse}
+.kb-table td{padding:3px 6px;border-bottom:1px solid #f5f5f5}
+.kb-table td:first-child{color:#999;white-space:nowrap;vertical-align:top;width:70px}
+.status-ok{color:#4caf50;font-weight:600}
+.status-pending{color:#ff9800}
 </style>
 </head>
 <body>
@@ -47,30 +69,49 @@ h1{font-size:20px;color:#d4232c;margin-bottom:4px}
 
 <div class="stat-row">
   <div class="stat"><div class="num" id="visitorCount">0</div><div class="label">访问人数</div></div>
-  <div class="stat"><div class="num" id="msgCount">0</div><div class="label">提问条数</div></div>
+  <div class="stat"><div class="num" id="regCount">0</div><div class="label">登记人数</div></div>
   <div class="stat"><div class="num" id="todayCount">0</div><div class="label">今日访问</div></div>
 </div>
 
 <div class="card">
-  <div style="font-weight:600;margin-bottom:10px;font-size:15px">📋 最近对话</div>
-  <div id="msgList"><div class="empty">暂无数据</div></div>
-</div>
-
-<div class="card" id="regCard">
-  <div style="font-weight:600;margin-bottom:10px;font-size:15px">📋 面试登记</div>
+  <div class="card-title">📋 面试登记</div>
   <div id="regList"><div class="empty">暂无登记</div></div>
   <div id="regFold" class="fold-toggle" style="display:none" onclick="toggleReg()">展开全部 ▼</div>
 </div>
 
+<div class="card">
+  <div class="card-title">📋 最近对话</div>
+  <div id="msgList"><div class="empty">暂无数据</div></div>
+</div>
+
 <div class="card" id="kbCard" style="display:none">
-  <div style="font-weight:600;margin-bottom:10px;font-size:15px">📝 云端知识库</div>
+  <div class="card-title">📝 云端知识库</div>
   <div id="kbStatus" style="font-size:11px;color:#999;margin-bottom:8px"></div>
-  <table style="width:100%;font-size:13px;border-collapse:collapse;" id="kbTable"></table>
-  <div style="font-weight:600;margin:12px 0 6px;font-size:13px">💬 自定义问答</div>
-  <div id="faqList" style="font-size:13px"><div class="empty">暂无自定义问答</div></div>
-  <div style="margin-top:12px;font-size:11px;color:#999">
-    💡 在聊天页面发送 <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">xglr 密码 指令</code> 即可云端更新<br>
-    默认密码：<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">0731</code>（可在云端KB中修改）
+  <table class="kb-table" id="kbTable"></table>
+</div>
+
+<div class="card">
+  <div class="card-title">🔧 岗位管理</div>
+  <div id="jobList" style="margin-bottom:12px"><div class="empty">加载中...</div></div>
+  <div style="border-top:1px solid #eee;padding-top:12px">
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px;color:#d4232c">➕ 新增岗位</div>
+    <div class="form-row">
+      <input id="newTitle" placeholder="名称" style="flex:1">
+      <input id="newAge" placeholder="年龄范围" value="18-25岁" style="flex:1">
+    </div>
+    <div class="form-row">
+      <select id="newGender">
+        <option value="不限">不限</option>
+        <option value="男">仅限男性</option>
+        <option value="女">仅限女性</option>
+      </select>
+      <input id="newExp" placeholder="经验要求" style="flex:2">
+    </div>
+    <div class="form-row">
+      <input id="newDuty" placeholder="工作内容" style="flex:3">
+      <button class="btn btn-sm" onclick="addJob()" style="white-space:nowrap">添加</button>
+    </div>
+    <div id="addResult" style="font-size:12px;color:#999;margin-top:4px;min-height:18px"></div>
   </div>
 </div>
 
@@ -79,27 +120,16 @@ h1{font-size:20px;color:#d4232c;margin-bottom:4px}
   <div id="visitList"><div class="empty">暂无数据</div></div>
 </div>
 
-<div class="card">
-  <div style="font-weight:600;margin-bottom:10px;font-size:15px">🔧 管理命令</div>
-  <div style="display:flex;gap:8px;margin-bottom:8px">
-    <input id="adminCmd" type="text" placeholder="输入管理命令..." style="flex:1;height:36px;border-radius:6px;border:1px solid #e0e0e0;padding:0 12px;font-size:13px;outline:none">
-    <button class="btn" onclick="execAdminCmd()" style="padding:8px 16px">发送</button>
-  </div>
-  <div id="adminHelp" style="font-size:11px;color:#999;margin-bottom:8px">
-    💡 例如：<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">改薪资 5000元</code>
-    <span style="cursor:pointer;color:#d4232c;margin-left:8px" onclick="showAdminHelp()">查看全部指令 ▸</span>
-  </div>
-  <div id="cmdResult" style="font-size:13px;padding:8px 0;display:none"></div>
-</div>
-
 <script>
 const BIN_URL = 'https://jsonblob.com/api/jsonBlob/019eea69-fad1-7cb6-a0af-a6dfb089a54b';
 const CORS_PROXY = 'https://corsproxy.io/?';
 const errEl = document.getElementById('errEl');
 
+function getURL() { return CORS_PROXY + encodeURIComponent(BIN_URL); }
+
 async function loadData() {
   try {
-    const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
+    const r = await fetch(getURL(), {cache:'no-store'});
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const data = await r.json();
     errEl.style.display = 'none';
@@ -114,46 +144,33 @@ async function loadData() {
 function render(d) {
   const visits = d.visits || [];
   const msgs = d.messages || [];
+  const regs = (d.kb && d.kb.registrations) || [];
   document.getElementById('visitorCount').textContent = d.totalVisitors || 0;
-  document.getElementById('msgCount').textContent = msgs.length;
+  document.getElementById('regCount').textContent = regs.length;
   
   // Today
   const today = new Date().toLocaleDateString('zh-CN');
-  const todayVisits = visits.filter(v => v.date === today).length;
-  document.getElementById('todayCount').textContent = todayVisits;
-  
-  // KB display - read from root level fields
+  document.getElementById('todayCount').textContent = visits.filter(v => v.date === today).length;
+
+  // KB display
   const kbFields = ['salaryRange','interviewTime','workHours','restDays','dorm','materials','trialPeriod','meals','uniform','appearance','teamCulture','brandInfo','stores','adminPassword'];
   const labels = {'salaryRange':'薪资','interviewTime':'面试时段','workHours':'工作时间','restDays':'休息天数','dorm':'宿舍','materials':'入职材料','trialPeriod':'试用期','meals':'食宿','uniform':'工装','appearance':'形象要求','teamCulture':'团队文化','brandInfo':'品牌信息','stores':'门店列表','adminPassword':'管理密码'};
   const hasKB = kbFields.some(f => d[f] !== undefined);
   if (hasKB) {
     document.getElementById('kbCard').style.display = '';
-    document.getElementById('kbStatus').innerHTML = '🕐 数据来源：JSONBlob 云端';
     let rows = '';
     for (const f of kbFields) {
       if (d[f] !== undefined) {
         let val = typeof d[f] === 'string' ? d[f] : JSON.stringify(d[f]);
-        rows += `<tr><td style="color:#999;padding:4px 8px 4px 0;white-space:nowrap;vertical-align:top">${labels[f]||f}</td><td style="padding:4px 0;font-size:12px">${esc(val).slice(0,80)}</td></tr>`;
+        rows += `<tr><td>${labels[f]||f}</td><td>${esc(val).slice(0,100)}</td></tr>`;
       }
     }
-    document.getElementById('kbTable').innerHTML = rows || '<tr><td>无配置</td></tr>';
-    // FAQ
-    const faqs = d.customFAQ || [];
-    const fl = document.getElementById('faqList');
-    if (faqs.length === 0) {
-      fl.innerHTML = '<div class="empty">暂无自定义问答</div>';
-    } else {
-      fl.innerHTML = faqs.map(f => `<div style="background:#fafafa;border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="color:#d4232c;font-weight:500">Q: ${esc(f.q)}</div>
-        <div style="color:#333;margin-top:3px">A: ${esc(f.a)}</div>
-      </div>`).join('');
-    }
+    document.getElementById('kbTable').innerHTML = rows || '<tr><td colspan="2">无配置</td></tr>';
   } else {
     document.getElementById('kbCard').style.display = 'none';
   }
-  
+
   // Registrations
-  const regs = (d.kb && d.kb.registrations) || [];
   const rl = document.getElementById('regList');
   const rf = document.getElementById('regFold');
   if (regs.length === 0) {
@@ -162,208 +179,158 @@ function render(d) {
   } else {
     const showAll = window._regShowAll;
     const visible = showAll ? regs : regs.slice(-5);
-    rl.innerHTML = visible.slice().reverse().map(r => `
-      <div class="reg-item">
-        <div><span class="name">${esc(r.name)}</span> → ${esc(r.store)}</div>
-        <div class="meta">📅 ${r.date} ${r.time} ｜ 🕐 ${r.at||''}</div>
-      </div>
-    `).join('');
-    if (regs.length > 5) {
-      rf.style.display = '';
-      rf.textContent = showAll ? '收起 ▲' : `展开全部（共${regs.length}条） ▼`;
+    rl.innerHTML = visible.slice().reverse().map(r =>
+      `<div class="reg-item"><span class="name">${esc(r.name)}</span> → ${esc(r.store)}<div class="meta">📅 ${r.date} ${r.time} ｜ 🕐 ${r.at||''}</div></div>`
+    ).join('');
+    rf.style.display = regs.length > 5 ? '' : 'none';
+    rf.textContent = showAll ? '收起 ▲' : `展开全部（共${regs.length}条） ▼`;
+  }
+
+  // Conversations - group by time window (5 min)
+  const convGroups = [];
+  let currentGroup = null;
+  const sorted = [...msgs].sort((a,b) => (a.ts||'').localeCompare(b.ts||''));
+  for (const m of sorted) {
+    if (!currentGroup) {
+      currentGroup = { msgs: [m], ts: m.ts || m.time || '' };
     } else {
-      rf.style.display = 'none';
+      const lastTs = currentGroup.msgs[currentGroup.msgs.length-1].ts || '';
+      const curTs = m.ts || '';
+      let diff = 999;
+      if (lastTs && curTs) {
+        diff = (new Date(curTs) - new Date(lastTs)) / 1000;
+      }
+      if (diff > 300) { // 5 min
+        convGroups.push(currentGroup);
+        currentGroup = { msgs: [m], ts: m.ts || m.time || '' };
+      } else {
+        currentGroup.msgs.push(m);
+      }
     }
   }
-  
-  // Messages
+  if (currentGroup) convGroups.push(currentGroup);
+
   const ml = document.getElementById('msgList');
-  if (msgs.length === 0) {
+  if (convGroups.length === 0) {
     ml.innerHTML = '<div class="empty">暂无对话</div>';
   } else {
-    ml.innerHTML = msgs.slice(-20).reverse().map(m => `
-      <div class="msg-item">
-        <span class="time">${m.time||''}</span>
-        <div class="q">👤 ${esc(m.q)}</div>
-        <div class="a">🤖 ${esc(m.a)}</div>
-      </div>
-    `).join('');
+    ml.innerHTML = convGroups.slice(-10).reverse().map((g, gi) => {
+      const qCount = g.msgs.filter(m => m.q).length;
+      const firstQ = g.msgs.find(m => m.q)?.q?.slice(0,20) || '';
+      const label = firstQ ? `「${esc(firstQ)}」` : '对话';
+      return `<div class="conv-session">
+        <div class="conv-header" onclick="toggleConv(${gi})">
+          <span>💬 ${label} <span class="count">${qCount}条</span></span>
+          <span style="color:#999;font-size:11px">${g.msgs[0]?.time||''}</span>
+        </div>
+        <div class="conv-body" id="conv_${gi}">
+          ${g.msgs.map(m => `<div class="conv-msg"><span class="time">${m.time||''}</span><div class="q">👤 ${esc(m.q||'')}</div><div class="a">🤖 ${esc(m.a||'').slice(0,200)}</div></div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
   }
-  
+
   // Visits
   const vl = document.getElementById('visitList');
   if (visits.length === 0) {
     vl.innerHTML = '<div class="empty">暂无记录</div>';
   } else {
-    vl.innerHTML = visits.slice(-30).reverse().map(v => `
-      <div class="visit-item">
-        📱 <span class="time">${v.time||''} ${v.date||''}</span>
-      </div>
-    `).join('');
+    vl.innerHTML = visits.slice(-30).reverse().map(v =>
+      `<div class="visit-item">📱 ${v.time||''} ${v.date||''}</div>`
+    ).join('');
+  }
+
+  // Jobs
+  loadJobs();
+}
+
+function toggleConv(idx) {
+  const el = document.getElementById('conv_' + idx);
+  if (el) el.classList.toggle('open');
+}
+
+async function loadJobs() {
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    const jobs = (d.kb && d.kb.jobs) || [];
+    const el = document.getElementById('jobList');
+    if (jobs.length === 0) {
+      el.innerHTML = '<div class="empty">暂无岗位</div>';
+    } else {
+      el.innerHTML = jobs.map((j,i) =>
+        `<div class="job-card">
+          <div class="info">
+            <div class="title">${esc(j.title)}</div>
+            <div class="detail">${esc(j.age)} · ${esc(j.gender)} · ${esc(j.exp)} · ${esc(j.duty)}</div>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="delJob(${i})" style="flex-shrink:0;margin-left:8px">删除</button>
+        </div>`
+      ).join('');
+    }
+  } catch(e) {
+    document.getElementById('jobList').innerHTML = '<div class="empty">加载失败</div>';
+  }
+}
+
+async function addJob() {
+  const title = document.getElementById('newTitle').value.trim();
+  const age = document.getElementById('newAge').value.trim();
+  const gender = document.getElementById('newGender').value;
+  const exp = document.getElementById('newExp').value.trim();
+  const duty = document.getElementById('newDuty').value.trim();
+  const resultEl = document.getElementById('addResult');
+  
+  if (!title || !age) {
+    resultEl.innerHTML = '❌ 请填写岗位名称和年龄';
+    return;
+  }
+
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    d.kb = d.kb || {};
+    d.kb.jobs = d.kb.jobs || [];
+    d.kb.jobs.push({title, age, gender: gender === '女' ? '仅限女性' : gender === '男' ? '仅限男性' : '不限', exp, duty});
+    d.kb.updatedAt = new Date().toISOString();
+    await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    resultEl.innerHTML = '✅ 已添加「' + title + '」';
+    document.getElementById('newTitle').value = '';
+    document.getElementById('newAge').value = '18-25岁';
+    document.getElementById('newExp').value = '';
+    document.getElementById('newDuty').value = '';
+    loadJobs();
+  } catch(e) {
+    resultEl.innerHTML = '❌ 失败: ' + e.message;
+  }
+}
+
+async function delJob(idx) {
+  if (!confirm('确认删除该岗位？')) return;
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    const jobs = d.kb && d.kb.jobs ? d.kb.jobs : [];
+    if (idx < 0 || idx >= jobs.length) return;
+    const removed = jobs.splice(idx, 1)[0];
+    d.kb.jobs = jobs;
+    d.kb.updatedAt = new Date().toISOString();
+    await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    document.getElementById('addResult').innerHTML = '✅ 已删除「' + removed.title + '」';
+    loadJobs();
+  } catch(e) {
+    document.getElementById('addResult').innerHTML = '❌ 失败: ' + e.message;
   }
 }
 
 function esc(s) {
-  return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,100);
+  return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,200);
 }
 
 function toggleReg() {
   window._regShowAll = !window._regShowAll;
   loadData();
 }
-
-// ===== 管理命令 =====
-const ADMIN_KEY = '0731';
-
-function showAdminHelp() {
-  const help = `📋 <b>管理指令列表</b><br><br>` +
-    `➕ <b>加岗位 名称 年龄 性别 经验 工作内容</b><br>` +
-    `❌ <b>删岗位 名称</b><br>` +
-    `👤 <b>改性别 岗位名 男/女/不限</b><br>` +
-    `🎂 <b>改年龄 岗位名 年龄范围</b><br>` +
-    `💰 <b>改薪资 金额</b><br>` +
-    `📌 <b>看岗位</b> — 查看当前所有岗位<br>` +
-    `🔒 <b>退出管理</b> — 返回招聘对话`;
-  showResult(help);
-}
-
-function showResult(html) {
-  const el = document.getElementById('cmdResult');
-  el.innerHTML = html;
-  el.style.display = '';
-}
-
-async function execAdminCmd() {
-  const input = document.getElementById('adminCmd');
-  const cmd = input.value.trim();
-  if (!cmd) return;
-  input.value = '';
-
-  // 帮助
-  if (/^(帮助|help|？|\?)$/i.test(cmd)) {
-    showAdminHelp();
-    return;
-  }
-
-  // 看岗位
-  if (/^看岗位/.test(cmd)) {
-    try {
-      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
-      const d = await r.json();
-      const jobs = (d.kb && d.kb.jobs) || [];
-      if (jobs.length === 0) showResult('暂无岗位数据');
-      else showResult(jobs.map((j,i) => `${i+1}. <b>${j.title}</b> | ${j.age} | ${j.gender} | ${j.exp}`).join('<br>'));
-    } catch(e) { showResult('❌ 读取失败: ' + e.message); }
-    return;
-  }
-
-  // 删岗位
-  let m = cmd.match(/^删岗位\s+(.+)/);
-  if (m) {
-    try {
-      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
-      const d = await r.json();
-      const jobs = d.kb && d.kb.jobs ? d.kb.jobs : [];
-      const idx = jobs.findIndex(j => j.title === m[1].trim());
-      if (idx === -1) showResult('❌ 未找到岗位「' + m[1] + '」');
-      else {
-        const removed = jobs.splice(idx, 1)[0];
-        d.kb.jobs = jobs;
-        d.kb.updatedAt = new Date().toISOString();
-        await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-        showResult('✅ 已删除「' + removed.title + '」');
-        loadData();
-      }
-    } catch(e) { showResult('❌ 失败: ' + e.message); }
-    return;
-  }
-
-  // 加岗位
-  m = cmd.match(/^加岗位\s+(\S+)\s+(\S+)\s+(男|女|不限)\s+(.+)/);
-  if (m) {
-    try {
-      const [_, title, age, gender, rest] = m;
-      const dutyIdx = rest.lastIndexOf(' ');
-      let exp = rest, duty = '';
-      if (dutyIdx > 0) { exp = rest.substring(0, dutyIdx); duty = rest.substring(dutyIdx + 1); }
-      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {cache:'no-store'});
-      const d = await r.json();
-      d.kb = d.kb || {};
-      d.kb.jobs = d.kb.jobs || [];
-      d.kb.jobs.push({title, age, gender, exp, duty});
-      d.kb.updatedAt = new Date().toISOString();
-      await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-      showResult('✅ 已添加「' + title + '」');
-      loadData();
-    } catch(e) { showResult('❌ 失败: ' + e.message); }
-    return;
-  }
-
-  // 改性别
-  m = cmd.match(/^改性别\s+(\S+)\s+(男|女|不限)/);
-  if (m) {
-    try {
-      const [_, name, gender] = m;
-      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
-      const d = await r.json();
-      const j = (d.kb && d.kb.jobs || []).find(j => j.title === name);
-      if (!j) showResult('❌ 未找到「' + name + '」');
-      else {
-        j.gender = gender === '女' ? '仅限女性' : gender === '男' ? '仅限男性' : '不限';
-        d.kb.updatedAt = new Date().toISOString();
-        await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-        showResult('✅ 已修改');
-        loadData();
-      }
-    } catch(e) { showResult('❌ 失败: ' + e.message); }
-    return;
-  }
-
-  // 改年龄
-  m = cmd.match(/^改年龄\s+(\S+)\s+(.+)/);
-  if (m) {
-    try {
-      const [_, name, age] = m;
-      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
-      const d = await r.json();
-      const j = (d.kb && d.kb.jobs || []).find(j => j.title === name);
-      if (!j) showResult('❌ 未找到「' + name + '」');
-      else {
-        j.age = age;
-        d.kb.updatedAt = new Date().toISOString();
-        await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-        showResult('✅ 已修改');
-        loadData();
-      }
-    } catch(e) { showResult('❌ 失败: ' + e.message); }
-    return;
-  }
-
-  // 改薪资
-  m = cmd.match(/^改薪资\s+(.+)/);
-  if (m) {
-    try {
-      const r = await fetch(CORS_PROXY + encodeURIComponent(BIN_URL));
-      const d = await r.json();
-      d.kb = d.kb || {};
-      d.salaryRange = m[1];
-      d.kb.salaryRange = m[1];
-      d.kb.updatedAt = new Date().toISOString();
-      await fetch(CORS_PROXY + encodeURIComponent(BIN_URL), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-      showResult('✅ 薪资已改为 <b>' + m[1] + '</b>');
-      loadData();
-    } catch(e) { showResult('❌ 失败: ' + e.message); }
-    return;
-  }
-
-  showResult('🤔 未识别指令。输入 <b>帮助</b> 查看所有可用命令。');
-}
-
-// Enter键发送
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('adminCmd');
-  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') execAdminCmd(); });
-});
 
 loadData();
 setInterval(loadData, 30000);
