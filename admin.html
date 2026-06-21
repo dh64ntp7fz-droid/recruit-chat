@@ -100,6 +100,7 @@ input:focus,select:focus{border-color:#d4232c}
     <div class="form-row">
       <input id="newTitle" placeholder="名称" style="flex:1">
       <input id="newAge" placeholder="年龄范围" value="18-25岁" style="flex:1">
+      <input id="newQuota" placeholder="需求人数" value="2" style="width:70px" type="number" min="0">
     </div>
     <div class="form-row">
       <select id="newGender">
@@ -325,6 +326,7 @@ async function loadJobs() {
                 ${window._stores.map(s => `<label style="font-size:12px;display:flex;align-items:center;gap:2px;cursor:pointer;background:#f5f5f5;padding:2px 6px;border-radius:4px;border:1px solid #eee;white-space:nowrap"><input type="checkbox" class="store-cb" data-idx="${i}" value="${esc(s.name)}" ${stores.includes(s.name)?'checked':''}>${esc(s.name)}</label>`).join('')}
                 <label style="font-size:12px;display:flex;align-items:center;gap:2px;cursor:pointer;background:#f5f5f5;padding:2px 6px;border-radius:4px;border:1px solid #eee;white-space:nowrap"><input type="checkbox" class="store-cb" data-idx="${i}" value="全部门店" ${stores.includes('全部门店')?'checked':''}>全部</label>
               </span>
+              <input id="eq_${i}" value="${j.quota||1}" class="job-input" placeholder="人数" style="width:60px" type="number" min="0" title="需求人数，0=不招">
               <input id="ee_${i}" value="${esc(j.exp)}" class="job-input" placeholder="经验" style="flex:1;min-width:120px">
               <div style="display:flex;gap:4px;flex:2;min-width:130px">
                 <input id="ed_${i}" value="${esc(j.duty)}" class="job-input" placeholder="工作内容" style="flex:1">
@@ -363,6 +365,7 @@ async function addJob() {
   const title = document.getElementById('newTitle').value.trim();
   const age = document.getElementById('newAge').value.trim();
   const gender = document.getElementById('newGender').value;
+  const quota = parseInt(document.getElementById('newQuota').value) || 1;
   // Read selected stores from checkboxes
   const storeCbs = document.querySelectorAll('#newStoreCbs .new-store-cb:checked');
   const store = Array.from(storeCbs).map(cb => cb.value);
@@ -381,7 +384,7 @@ async function addJob() {
     const d = await r.json();
     d.kb = d.kb || {};
     d.kb.jobs = d.kb.jobs || [];
-    d.kb.jobs.push({title, age, gender: gender === '女' ? '仅限女性' : gender === '男' ? '仅限男性' : '不限', store, exp, duty});
+    d.kb.jobs.push({title, age, gender: gender === '女' ? '仅限女性' : gender === '男' ? '仅限男性' : '不限', store, quota, exp, duty});
     d.kb.updatedAt = new Date().toISOString();
     await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
     resultEl.innerHTML = '✅ 已添加「' + title + '」';
@@ -417,6 +420,7 @@ async function editJob(idx) {
   const title = document.getElementById('et_' + idx).value.trim();
   const age = document.getElementById('ea_' + idx).value.trim();
   const gender = document.getElementById('eg_' + idx).value;
+  const quota = parseInt(document.getElementById('eq_' + idx).value) || 1;
   const store = document.getElementById('es_' + idx).value;
   const exp = document.getElementById('ee_' + idx).value.trim();
   const duty = document.getElementById('ed_' + idx).value.trim();
@@ -426,7 +430,7 @@ async function editJob(idx) {
     const d = await r.json();
     const jobs = d.kb && d.kb.jobs ? d.kb.jobs : [];
     if (idx < 0 || idx >= jobs.length) return;
-    jobs[idx] = { title, age, gender, store, exp, duty };
+    jobs[idx] = { title, age, gender, store, quota, exp, duty };
     d.kb.jobs = jobs;
     d.kb.updatedAt = new Date().toISOString();
     await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});

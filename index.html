@@ -635,9 +635,11 @@ function matchQuery(text) {
   if (/有意向|想了解|我想来|我要应聘|我要面试|怎么入职|想试试|想面试|感兴趣|招人吗|还招人|要人吗/.test(t)) return { type: 'intent' };
 
   // 岗位相关
-  if (/招聘|岗位|招什么|招人|职位|工作内容|做什么|服务员|咨客|传菜|煮饭|大姐|后厨/.test(t)) {
+  const jobTitles = KB.jobs.filter(j => j.quota !== 0).map(j => j.title).join('|');
+  if (new RegExp('招聘|岗位|招什么|招人|职位|工作内容|做什么|' + jobTitles).test(t)) {
     // 检查是否是点击单个岗位按钮
     for (let i = 0; i < KB.jobs.length; i++) {
+      if (KB.jobs[i].quota === 0) continue; // 需求为0不展示
       if (text.trim() === KB.jobs[i].title) return { type: 'jobDetail', jobIdx: i };
     }
     return { type: 'jobs' };
@@ -735,8 +737,13 @@ function generateResponse(match, originalText) {
       break;
 
     case 'jobs':
-      resp = '📌 <b>我们有以下岗位正在招聘：</b>\n\n请点击了解具体岗位详情：<br><br>' + 
-        KB.jobs.map((j,i) => `<span class="inline-btn" data-q="${j.title}">${j.title}</span>`).join(' ');
+      const _availJobs = KB.jobs.filter(j => j.quota !== 0);
+      if (_availJobs.length === 0) {
+        resp = '😅 目前所有岗位已经招满了，暂时没有空缺。建议你过段时间再来看看，或者直接到店面谈了解一下后续计划。';
+      } else {
+        resp = '📌 <b>我们有以下岗位正在招聘：</b>\n\n请点击了解具体岗位详情：<br><br>' + 
+          _availJobs.map((j,i) => `<span class="inline-btn" data-q="${j.title}">${j.title}</span>`).join(' ');
+      }
       if (/面试|地址|面谈|到店/.test(originalText)) appendTime = true;
       break;
 
@@ -796,7 +803,12 @@ function generateResponse(match, originalText) {
       break;
 
     case 'headcount':
-      resp = '目前每个岗位最多再招2人，具体以当天到店面谈确认为准。建议你尽快安排时间到店。';
+      const _quotaJobs = KB.jobs.filter(j => j.quota !== 0);
+      if (_quotaJobs.length === 0) {
+        resp = '😅 目前所有岗位已经招满了。建议你过段时间再来看看。';
+      } else {
+        resp = '目前各岗位需求如下：<br>' + _quotaJobs.map(j => `<b>${j.title}</b>：需${j.quota}人`).join('<br>') + '<br><br>具体以当天到店面谈确认为准。建议你尽快安排时间到店。';
+      }
       appendTime = true;
       break;
 
@@ -868,28 +880,19 @@ function buildSingleJobResponse(idx) {
     KB.baseRequirement;
 }
 
-// 在回复末尾追加快捷按钮
+// 在回复末尾追加4个提示按钮
 function appendButtons(resp, matchType) {
   if (/面试登记/.test(resp)) return resp; // 登记流程不追加
-  if (resp.includes('inline-btn')) return resp; // 已有按钮不追加
+  if (resp.includes('inline-btn') && !resp.includes('招聘什么岗位')) return resp; // 已有按钮不追加（排除已经是按钮的）
   
-  let btns = '';
-  if (matchType === 'intent' || matchType === 'askStore') {
-    // 已有门店选择按钮，不追加
-    return resp;
-  } else if (matchType === 'jobs') {
-    btns = KB.jobs.map(j => `<span class="inline-btn" data-q="${j.title}">${j.title}</span>`).join(' ');
-  } else if (matchType === 'jobDetail') {
-    btns = `<span class="inline-btn" data-q="面试怎么去">面试怎么去</span> <span class="inline-btn" data-q="薪资多少">薪资多少</span> <span class="inline-btn" data-q="宿舍怎么样">宿舍怎么样</span>`;
-  } else {
-    btns = `<span class="inline-btn" data-q="招聘什么岗位">招聘什么岗位</span> <span class="inline-btn" data-q="面试怎么去">面试怎么去</span> <span class="inline-btn" data-q="薪资多少">薪资多少</span> <span class="inline-btn" data-q="宿舍怎么样">宿舍怎么样</span>`;
-  }
+  const btns = `<span class="inline-btn" data-q="薪资待遇">💰薪资待遇</span> <span class="inline-btn" data-q="面试门店地址">📍面试门店</span> <span class="inline-btn" data-q="招聘什么岗位">📋岗位详情</span> <span class="inline-btn" data-q="宿舍环境">🏠宿舍环境</span>`;
   return resp + '\n\n' + btns;
 }
 
 function buildAgeMatchResponse(age) {
-  // 找到年龄匹配的岗位
+  // 找到年龄匹配的岗位（排除需求为0的）
   const matched = KB.jobs.filter(j => {
+    if (j.quota === 0) return false;
     const [lo, hi] = j.age.split('-').map(Number);
     return age >= lo && age <= hi;
   });
