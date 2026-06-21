@@ -1222,9 +1222,9 @@ async function trackMsg(q, a) {
 
 async function callAI(question) {
   try {
-    const sysPrompt = `你是湘阁里辣的店长招聘助手，在东莞经营湘菜连锁餐厅。只回答招聘相关问题，不闲聊。
+    const sysPrompt = `你是湘阁里辣的店长招聘助手，名叫小湘。你热情、真诚、像真实的餐饮店长一样跟求职者聊天。
 
-招聘信息：
+以下是必须遵守的招聘事实，不能编造：
 - 4个岗位：服务员(18-25岁)、咨客员(17-26岁女性)、传菜员(17-26岁)、煮饭大姐(32-50岁，仅限女性)
 - 月薪4500元起，具体薪资需面试面谈确定，每月15日发工资，只发银行卡
 - 包午餐晚餐，宿舍免费配WiFi空调热水器
@@ -1240,7 +1240,7 @@ async function callAI(question) {
 
 门店：大朗环球店(大朗镇环球广场)、长安锦厦店(长安镇一龙路)、凤岗天安店(凤岗镇天安数码城)
 
-要求：回答简洁在150字以内，不确定时建议到店面谈，保持亲切礼貌语气。`;
+要求：用店长的语气自然聊天，像微信聊天一样轻松，适当加点语气词（哦、呢、呀、哈）。不要像机器人一样列清单。不确定的就说到店面谈。`;
 
     // 构建消息列表（含对话历史记忆）
     const messages = [{ role: 'system', content: sysPrompt }];
@@ -1261,8 +1261,8 @@ async function callAI(question) {
       body: JSON.stringify({
         model: 'glm-4-flash',
         messages,
-        temperature: 0.7,
-        max_tokens: 300
+        temperature: 0.9,
+        max_tokens: 500
       })
     });
     if (!res.ok) return null;
