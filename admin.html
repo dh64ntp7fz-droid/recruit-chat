@@ -53,6 +53,8 @@ input:focus,select:focus{border-color:#d4232c}
 .kb-table td:first-child{color:#999;white-space:nowrap;vertical-align:top;width:70px}
 .status-ok{color:#4caf50;font-weight:600}
 .status-pending{color:#ff9800}
+.job-input{height:30px;border-radius:4px;border:1px solid #ddd;padding:0 6px;font-size:12px;outline:none;background:#fff}
+.job-input:focus{border-color:#d4232c}
 </style>
 </head>
 <body>
@@ -261,10 +263,22 @@ async function loadJobs() {
       el.innerHTML = jobs.map((j,i) =>
         `<div class="job-card">
           <div class="info">
-            <div class="title">${esc(j.title)}</div>
-            <div class="detail">${esc(j.age)} · ${esc(j.gender)} · ${esc(j.exp)} · ${esc(j.duty)}</div>
+            <div><input id="et_${i}" value="${esc(j.title)}" class="job-input" placeholder="名称" style="font-weight:600;color:#d4232c"></div>
+            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+              <input id="ea_${i}" value="${esc(j.age)}" class="job-input" placeholder="年龄" style="width:90px">
+              <select id="eg_${i}" class="job-input" style="width:100px">
+                <option value="不限" ${j.gender==='不限'?'selected':''}>不限</option>
+                <option value="仅限男性" ${j.gender==='仅限男性'?'selected':''}>仅限男性</option>
+                <option value="仅限女性" ${j.gender==='仅限女性'?'selected':''}>仅限女性</option>
+              </select>
+              <input id="ee_${i}" value="${esc(j.exp)}" class="job-input" placeholder="经验" style="flex:1;min-width:120px">
+              <input id="ed_${i}" value="${esc(j.duty)}" class="job-input" placeholder="工作内容" style="flex:2;min-width:120px">
+            </div>
           </div>
-          <button class="btn btn-sm btn-outline" onclick="delJob(${i})" style="flex-shrink:0;margin-left:8px">删除</button>
+          <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px;align-items:flex-start">
+            <button class="btn btn-sm" onclick="editJob(${i})" style="padding:4px 8px">保存</button>
+            <button class="btn btn-sm btn-outline" onclick="delJob(${i})" style="padding:4px 8px">删除</button>
+          </div>
         </div>`
       ).join('');
     }
@@ -317,6 +331,29 @@ async function delJob(idx) {
     d.kb.updatedAt = new Date().toISOString();
     await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
     document.getElementById('addResult').innerHTML = '✅ 已删除「' + removed.title + '」';
+    loadJobs();
+  } catch(e) {
+    document.getElementById('addResult').innerHTML = '❌ 失败: ' + e.message;
+  }
+}
+
+async function editJob(idx) {
+  const title = document.getElementById('et_' + idx).value.trim();
+  const age = document.getElementById('ea_' + idx).value.trim();
+  const gender = document.getElementById('eg_' + idx).value;
+  const exp = document.getElementById('ee_' + idx).value.trim();
+  const duty = document.getElementById('ed_' + idx).value.trim();
+  if (!title || !age) { document.getElementById('addResult').innerHTML = '❌ 名称和年龄不能为空'; return; }
+  try {
+    const r = await fetch(getURL(), {cache:'no-store'});
+    const d = await r.json();
+    const jobs = d.kb && d.kb.jobs ? d.kb.jobs : [];
+    if (idx < 0 || idx >= jobs.length) return;
+    jobs[idx] = { title, age, gender, exp, duty };
+    d.kb.jobs = jobs;
+    d.kb.updatedAt = new Date().toISOString();
+    await fetch(getURL(), {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    document.getElementById('addResult').innerHTML = '✅ 已保存「' + title + '」';
     loadJobs();
   } catch(e) {
     document.getElementById('addResult').innerHTML = '❌ 失败: ' + e.message;
