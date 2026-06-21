@@ -402,14 +402,18 @@ async function adminUpdate(command) {
   
   // 帮助
   if (/^(帮助|help|？|\?)$/i.test(cmd)) {
-    return { ok: true, reply: `📋 <b>管理指令列表</b><br><br>` +
-      `➕ <b>加岗位 名称 年龄 性别 经验 工作内容</b><br>` +
-      `❌ <b>删岗位 名称</b><br>` +
-      `👤 <b>改性别 岗位名 男/女/不限</b><br>` +
-      `🎂 <b>改年龄 岗位名 年龄范围</b><br>` +
-      `💰 <b>改薪资 金额</b><br>` +
-      `📌 <b>看岗位</b> — 查看当前所有岗位<br>` +
-      `🔒 <b>退出管理</b> — 返回招聘对话` };
+    const jobs = KB.jobs.map(j => j.title);
+    return { ok: true, reply: `📋 <b>管理指令</b><br><br>` +
+      `<span class="inline-btn" data-q="看岗位">📌 看岗位</span>` +
+      `<span class="inline-btn" data-q="改薪资 4500元">💰 改薪资</span>` +
+      `<span class="inline-btn" data-q="删岗位 ">❌ 删岗位</span>` +
+      jobs.map(t => `<span class="inline-btn" data-q="删岗位 ${t}">${t}</span>`).join('') +
+      `<br><br>➕ <b>加岗位</b> 名称 年龄 性别 经验 工作内容<br>` +
+      `<span class="inline-btn" data-q="加岗位 服务员 18-25岁 不限 有无经验均可 接待点单上菜">快速添加服务员</span>` +
+      `<span class="inline-btn" data-q="加岗位 咨客员 17-26岁 女 有经验优先 迎宾登记">快速添加咨客员</span>` +
+      `<br><br>👤 <b>改性别</b> ` + jobs.map(t => `<span class="inline-btn" data-q="改性别 ${t} ">${t}</span>`).join('') +
+      `<br>🎂 <b>改年龄</b> ` + jobs.map(t => `<span class="inline-btn" data-q="改年龄 ${t} ">${t}</span>`).join('') +
+      `<br><br><span class="inline-btn" data-q="退出管理">🔒 退出管理</span>` };
   }
 
   // 看岗位
